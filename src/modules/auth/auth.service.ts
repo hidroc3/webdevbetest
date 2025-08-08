@@ -4,6 +4,7 @@ import { RegisterDto } from './dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { JwtInterface } from '@/common/interfaces/jwt.interface';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +23,7 @@ export class AuthService {
     }
 
     const isPasswordValid = await bcrypt.compare(
-      data.password,
+      data.password_hash,
       user.password_hash || '',
     );
 
@@ -30,13 +31,16 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = {
+    const jwtInterface: JwtInterface = {
       id: Number(user.id),
-      email: user.email,
-      name: user.full_name,
+      username: user.username || '',
+      email: user.email || '',
+      full_name: user.full_name || '',
+      role: user.role || '',
+      is_active: user.is_active || false,
     };
 
-    const token = this.jwtService.sign(payload);
+    const token = this.jwtService.sign(jwtInterface);
 
     return {
       token,
@@ -45,7 +49,7 @@ export class AuthService {
   }
 
   async register(data: RegisterDto) {
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const hashedPassword = await bcrypt.hash(data.password_hash, 10);
 
     return await this.prisma.user.create({
       data: {
@@ -65,5 +69,24 @@ export class AuthService {
         is_active: true,
       },
     });
+  }
+
+  async user(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: id },
+    });
+
+    if (!user) return null;
+
+    const jwtInterface: JwtInterface = {
+      id: Number(user.id),
+      username: user.username || '',
+      email: user.email || '',
+      full_name: user.full_name || '',
+      role: user.role || '',
+      is_active: user.is_active || false,
+    };
+
+    return jwtInterface;
   }
 }
