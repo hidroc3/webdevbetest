@@ -47,6 +47,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { SirineModule } from './modules/sirine/sirine.module';
 // API Sirine
 import { ApiSirineEagleioModule } from './modules/api-sirine-eagleio/api-sirine-eagleio.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { ApiSirineEagleioModule } from './modules/api-sirine-eagleio/api-sirine-
     HigertechModule, // get data per-5 menit
     SirineModule,
     ApiSirineEagleioModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

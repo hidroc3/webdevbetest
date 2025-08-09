@@ -1,25 +1,53 @@
-import { IsBoolean, IsEmail, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Matches,
+  MinLength,
+} from 'class-validator';
 
 export class CreateUserDto {
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  username?: string;
+  @Matches(/^[a-z0-9_]+$/, {
+    message:
+      'Username must contain only lowercase letters, numbers, and underscores',
+  })
+  username: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  password_hash?: string;
+  @MinLength(8, { message: 'Password must be at least 8 characters long' })
+  @Matches(/^(?=.*[a-z])/, {
+    message: 'Password must contain at least one lowercase letter',
+  })
+  @Matches(/^(?=.*[A-Z])/, {
+    message: 'Password must contain at least one uppercase letter',
+  })
+  @Matches(/^(?=.*\d)/, {
+    message: 'Password must contain at least one number',
+  })
+  @Matches(/^(?=.*[@$!%*?&])/, {
+    message: 'Password must contain at least one special character (@$!%*?&)',
+  })
+  password_hash: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsEmail()
-  email?: string;
+  @Matches(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/, {
+    message: 'Email must be all lowercase',
+  })
+  email: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  full_name?: string;
+  full_name: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  role?: string;
+  role: string;
 
   @IsOptional()
   @IsBoolean()
