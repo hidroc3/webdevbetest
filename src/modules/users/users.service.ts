@@ -79,7 +79,6 @@ export class UsersService {
     search = '',
   ): Promise<PaginationInterface<UserInterface>> {
     const skip = (page - 1) * perPage;
-
     const where = search
       ? {
           OR: [
@@ -90,29 +89,30 @@ export class UsersService {
         }
       : {};
 
-    const total = await this.prisma.user.count({ where });
-
-    const users = await this.prisma.user.findMany({
-      where,
-      skip,
-      take: perPage,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        username: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-        roles: {
-          select: {
-            role: {
-              select: {
-                name: true,
-                permissions: {
-                  select: {
-                    permission: {
-                      select: { name: true },
+    const [total, data] = await Promise.all([
+      this.prisma.user.count({ where }),
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: perPage,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          username: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+          roles: {
+            select: {
+              role: {
+                select: {
+                  name: true,
+                  permissions: {
+                    select: {
+                      permission: {
+                        select: { name: true },
+                      },
                     },
                   },
                 },
@@ -120,13 +120,11 @@ export class UsersService {
             },
           },
         },
-      },
-    });
-
+      }),
+    ]);
     const totalPages = Math.ceil(total / perPage);
-
     return {
-      data: users.map((user) => this.formatResponse(user)),
+      data: data.map((item) => this.formatResponse(item)),
       total,
       page,
       perPage,

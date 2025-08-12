@@ -15,22 +15,41 @@ export class PermissionsService {
     const existing = await this.prisma.permission.findUnique({
       where: { name: data.name },
     });
-    if (existing)
+    if (existing) {
       throw new BadRequestException('Permission name already exists');
-
+    }
     return this.prisma.permission.create({ data });
   }
 
-  async findAll() {
-    return this.prisma.permission.findMany({
-      include: {
-        roles: {
-          select: {
-            role: true,
+  async findAll(page = 1, perPage = 10, search = '') {
+    const skip = (page - 1) * perPage;
+    const where = search ? { name: { contains: search } } : {};
+    const [total, data] = await Promise.all([
+      this.prisma.permission.count({ where }),
+      this.prisma.permission.findMany({
+        where,
+        skip,
+        take: perPage,
+        include: {
+          roles: {
+            include: {
+              role: true,
+            },
           },
         },
-      },
-    });
+      }),
+    ]);
+    const totalPages = Math.ceil(total / perPage);
+    return {
+      data: data.map((permission) => ({
+        ...permission,
+        roles: permission.roles.map((r) => r.role.name),
+      })),
+      total,
+      page,
+      perPage,
+      totalPages,
+    };
   }
 
   async findOne(id: bigint) {
@@ -38,30 +57,36 @@ export class PermissionsService {
       where: { id },
       include: {
         roles: {
-          select: {
+          include: {
             role: true,
           },
         },
       },
     });
-    if (!permission) throw new NotFoundException('Permission not found');
-    return permission;
+    if (!permission) {
+      throw new NotFoundException('Permission not found');
+    }
+    return {
+      ...permission,
+      roles: permission.roles.map((r) => r.role.name),
+    };
   }
 
   async update(id: bigint, data: UpdatePermissionDto) {
     const permission = await this.prisma.permission.findUnique({
       where: { id },
     });
-    if (!permission) throw new NotFoundException('Permission not found');
-
+    if (!permission) {
+      throw new NotFoundException('Permission not found');
+    }
     if (data.name && data.name !== permission.name) {
       const existing = await this.prisma.permission.findUnique({
         where: { name: data.name },
       });
-      if (existing)
+      if (existing) {
         throw new BadRequestException('Permission name already exists');
+      }
     }
-
     return this.prisma.permission.update({
       where: { id },
       data,
@@ -72,8 +97,9 @@ export class PermissionsService {
     const permission = await this.prisma.permission.findUnique({
       where: { id },
     });
-    if (!permission) throw new NotFoundException('Permission not found');
-
+    if (!permission) {
+      throw new NotFoundException('Permission not found');
+    }
     return this.prisma.permission.delete({ where: { id } });
   }
 }
