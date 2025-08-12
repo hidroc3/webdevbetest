@@ -2,6 +2,7 @@ import {
   IsBoolean,
   IsEmail,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   Matches,
@@ -9,6 +10,17 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+
+  @IsNotEmpty()
+  @IsEmail()
+  @Matches(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/, {
+    message: 'Email must be all lowercase',
+  })
+  email: string;
+
   @IsNotEmpty()
   @IsString()
   @Matches(/^[a-z0-9_]+$/, {
@@ -32,24 +44,13 @@ export class CreateUserDto {
   @Matches(/^(?=.*[@$!%*?&])/, {
     message: 'Password must contain at least one special character (@$!%*?&)',
   })
-  password_hash: string;
-
-  @IsNotEmpty()
-  @IsEmail()
-  @Matches(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/, {
-    message: 'Email must be all lowercase',
-  })
-  email: string;
-
-  @IsNotEmpty()
-  @IsString()
-  full_name: string;
-
-  @IsNotEmpty()
-  @IsString()
-  role: string;
+  password: string;
 
   @IsOptional()
   @IsBoolean()
-  is_active?: boolean;
+  isActive?: boolean;
+
+  @IsNotEmpty()
+  @IsNumber()
+  roleId: number;
 }

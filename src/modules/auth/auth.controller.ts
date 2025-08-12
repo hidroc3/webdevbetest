@@ -10,10 +10,9 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
 import { Request } from 'express';
 import { JwtGuard } from '@/common/guards/jwt.guard';
-import { JwtInterface } from '@/common/interfaces/jwt.interface';
+import { AuthInterface } from '@/common/interfaces/auth.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -25,24 +24,18 @@ export class AuthController {
     const data = await this.authService.login(dto);
     return {
       message: 'Login successfully',
-      data: data,
+      data,
     };
   }
 
   @Get('user')
   @UseGuards(JwtGuard)
   async user(@Req() req: Request) {
-    const id = (req.user as JwtInterface).id;
-    return this.authService.user(id);
-  }
-
-  @Post('register')
-  @HttpCode(HttpStatus.CREATED)
-  async register(@Body() dto: RegisterDto) {
-    const data = await this.authService.register(dto);
+    const id = (req.user as AuthInterface).id;
+    const data = await this.authService.user(BigInt(id));
     return {
-      message: 'Register successfully',
-      data: data,
+      message: 'User retrieved',
+      data,
     };
   }
 }

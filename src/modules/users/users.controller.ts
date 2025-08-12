@@ -12,6 +12,8 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtGuard } from '@/common/guards/jwt.guard';
+import { Query, ValidationPipe, UsePipes } from '@nestjs/common';
+import { QueryParamsDto } from './dto/query-params.dto';
 
 @Controller('users')
 @UseGuards(JwtGuard)
@@ -25,26 +27,33 @@ export class UsersController {
   }
 
   @Get()
-  async findAll() {
-    const data = await this.service.findAll();
-    return { message: 'All users retrieved', data };
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async findAll(@Query() query: QueryParamsDto) {
+    const page = query.page ?? 1;
+    const perPage = query.perPage ?? 10;
+    const search = query.search ?? '';
+    const result = await this.service.findAll(page, perPage, search);
+    return {
+      message: 'All users retrieved',
+      ...result,
+    };
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const data = await this.service.findOne(+id);
+    const data = await this.service.findOne(BigInt(id));
     return { message: 'User retrieved', data };
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    const data = await this.service.update(+id, dto);
+    const data = await this.service.update(BigInt(id), dto);
     return { message: 'User updated successfully', data };
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    const data = await this.service.remove(+id);
+    const data = await this.service.remove(BigInt(id));
     return { message: 'User deleted successfully', data };
   }
 }

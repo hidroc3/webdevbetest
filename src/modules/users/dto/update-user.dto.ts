@@ -1,6 +1,7 @@
 import {
   IsBoolean,
   IsEmail,
+  IsNumber,
   IsOptional,
   IsString,
   Matches,
@@ -8,6 +9,17 @@ import {
 } from 'class-validator';
 
 export class UpdateUserDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsEmail()
+  @Matches(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/, {
+    message: 'Email must be all lowercase',
+  })
+  email?: string;
+
   @IsOptional()
   @IsString()
   @Matches(/^[a-z0-9_]+$/, {
@@ -31,24 +43,13 @@ export class UpdateUserDto {
   @Matches(/^(?=.*[@$!%*?&])/, {
     message: 'Password must contain at least one special character (@$!%*?&)',
   })
-  password_hash?: string;
-
-  @IsOptional()
-  @IsEmail()
-  @Matches(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/, {
-    message: 'Email must be all lowercase',
-  })
-  email?: string;
-
-  @IsOptional()
-  @IsString()
-  full_name?: string;
-
-  @IsOptional()
-  @IsString()
-  role?: string;
+  password?: string;
 
   @IsOptional()
   @IsBoolean()
-  is_active?: boolean;
+  isActive?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  roleId?: number;
 }

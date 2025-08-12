@@ -1,9 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { AuthInterface } from '@/common/interfaces/auth.interface';
+import { UserInterface } from '@/common/interfaces/user.interface';
 import { JwtInterface } from '@/common/interfaces/jwt.interface';
 
 @Injectable()
@@ -13,80 +14,80 @@ export class AuthService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async login(data: LoginDto) {
+  async login(data: LoginDto): Promise<JwtInterface> {
     const user = await this.prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email: data.email.toLowerCase() },
     });
-
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-
-    const isPasswordValid = await bcrypt.compare(
-      data.password_hash,
-      user.password_hash || '',
-    );
-
+    const isPasswordValid = await bcrypt.compare(data.password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-
-    const jwtInterface: JwtInterface = {
-      id: Number(user.id),
-      username: user.username || '',
-      email: user.email || '',
-      full_name: user.full_name || '',
-      role: user.role || '',
-      is_active: user.is_active || false,
+    if (!user.isActive) {
+      throw new UnauthorizedException('User account is inactive');
+    }
+    const payload: AuthInterface = {
+      id: user.id.toString(),
+      name: user.name,
+      email: user.email,
+      username: user.username,
     };
-
-    const token = this.jwtService.sign(jwtInterface);
-
+    const token = this.jwtService.sign(payload);
     return {
-      token,
       type: 'Bearer',
+      token,
     };
   }
 
-  async register(data: RegisterDto) {
-    const hashedPassword = await bcrypt.hash(data.password_hash, 10);
-
-    return await this.prisma.user.create({
-      data: {
-        username: data.username,
-        email: data.email,
-        password_hash: hashedPassword,
-        full_name: data.full_name,
-        role: data.role,
-        is_active: data.is_active ?? true,
-      },
+  async user(id: bigint): Promise<UserInterface | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
       select: {
         id: true,
-        username: true,
+        name: true,
         email: true,
-        full_name: true,
-        role: true,
-        is_active: true,
+        username: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        roles: {
+          select: {
+            role: {
+              select: {
+                name: true,
+                permissions: {
+                  select: {
+                    permission: {
+                      select: {
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
-  }
-
-  async user(id: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: id },
-    });
-
     if (!user) return null;
-
-    const jwtInterface: JwtInterface = {
-      id: Number(user.id),
-      username: user.username || '',
-      email: user.email || '',
-      full_name: user.full_name || '',
-      role: user.role || '',
-      is_active: user.is_active || false,
+    const userRole = user.roles.length > 0 ? user.roles[0].role.name : null;
+    const permissions =
+      user.roles.length > 0
+        ? user.roles[0].role.permissions.map((p) => p.permission.name)
+        : [];
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      username: user.username,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      role: userRole,
+      permissions,
     };
-
-    return jwtInterface;
   }
 }

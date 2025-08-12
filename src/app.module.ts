@@ -48,6 +48,8 @@ import { SirineModule } from './modules/sirine/sirine.module';
 // API Sirine
 import { ApiSirineEagleioModule } from './modules/api-sirine-eagleio/api-sirine-eagleio.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
 
 @Module({
   imports: [
@@ -87,6 +89,8 @@ import { AuthModule } from './modules/auth/auth.module';
     SirineModule,
     ApiSirineEagleioModule,
     AuthModule,
+    RolesModule,
+    PermissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
