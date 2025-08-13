@@ -1,125 +1,217 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateUserDto) {
-    const existingUsername = await this.prisma.user.findUnique({
+    const uniqueUsername = await this.prisma.user.findUnique({
       where: { username: data.username },
     });
-    if (existingUsername) {
+    if (uniqueUsername) {
       throw new BadRequestException('Username already exists');
     }
-
-    const existingEmail = await this.prisma.user.findUnique({
+    const uniqueEmail = await this.prisma.user.findUnique({
       where: { email: data.email },
     });
-    if (existingEmail) {
+    if (uniqueEmail) {
       throw new BadRequestException('Email already exists');
     }
-
-    const hashedPassword = await bcrypt.hash(data.password_hash, 10);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await this.prisma.user.create({
       data: {
-        username: data.username.toLowerCase(),
-        email: data.email.toLowerCase(),
-        password_hash: hashedPassword,
-        full_name: data.full_name,
-        role: data.role,
-        is_active: data.is_active ?? true,
+        name: data.name,
+        email: data.email,
+        username: data.username,
+        password: hashedPassword,
+        isActive: data.isActive ?? true,
+        roles: data.roleId
+          ? {
+              create: {
+                role: { connect: { id: BigInt(data.roleId) } },
+              },
+            }
+          : undefined,
       },
       select: {
         id: true,
-        username: true,
+        name: true,
         email: true,
-        full_name: true,
-        role: true,
-        is_active: true,
-      },
-    });
-    return user;
-  }
-
-  async findAll() {
-    return await this.prisma.user.findMany({
-      select: {
-        id: true,
         username: true,
-        email: true,
-        full_name: true,
-        role: true,
-        is_active: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
+        roles: {
+          select: {
+            role: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
+    return {
+      ...user,
+      role: user.roles[0]?.role.name ?? null,
+      roles: undefined,
+    };
   }
 
-  async findOne(id: number) {
-    return await this.prisma.user.findUnique({
+  async findAll(page = 1, perPage = 10, search = '') {
+    const skip = (page - 1) * perPage;
+    const where = search
+      ? {
+          OR: [
+            { name: { contains: search } },
+            { email: { contains: search } },
+            { username: { contains: search } },
+          ],
+        }
+      : {};
+    const [total, data] = await Promise.all([
+      this.prisma.user.count({ where }),
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: perPage,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          username: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+          roles: {
+            select: {
+              role: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+    const totalPages = Math.ceil(total / perPage);
+    return {
+      data: data.map((user) => ({
+        ...user,
+        role: user.roles[0]?.role.name ?? null,
+        roles: undefined,
+      })),
+      total,
+      page,
+      perPage,
+      totalPages,
+    };
+  }
+
+  async findOne(id: bigint) {
+    const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
         id: true,
-        username: true,
+        name: true,
         email: true,
-        full_name: true,
-        role: true,
-        is_active: true,
+        username: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        roles: {
+          select: {
+            role: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
+    if (!user) throw new NotFoundException('User not found');
+    return {
+      ...user,
+      role: user.roles[0]?.role.name ?? null,
+      roles: undefined,
+    };
   }
 
-  async update(id: number, data: UpdateUserDto) {
-    if (data.username) {
-      const existingUsername = await this.prisma.user.findUnique({
-        where: { username: data.username.toLowerCase() },
-      });
-      if (existingUsername && Number(existingUsername.id) !== id) {
-        throw new BadRequestException('Username already exists');
-      }
+  async update(id: bigint, data: UpdateUserDto) {
+    const uniqueUsername = await this.prisma.user.findUnique({
+      where: { username: data.username },
+    });
+    if (uniqueUsername && BigInt(uniqueUsername.id) !== id) {
+      throw new BadRequestException('Username already exists');
     }
-
-    if (data.email) {
-      const existingEmail = await this.prisma.user.findUnique({
-        where: { email: data.email.toLowerCase() },
-      });
-      if (existingEmail && Number(existingEmail.id) !== id) {
-        throw new BadRequestException('Email already exists');
-      }
+    const uniqueEmail = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
+    if (uniqueEmail && BigInt(uniqueEmail.id) !== id) {
+      throw new BadRequestException('Email already exists');
     }
-
     let hashedPassword: string | undefined;
-    if (data.password_hash) {
-      hashedPassword = await bcrypt.hash(data.password_hash, 10);
+    if (data.password) {
+      hashedPassword = await bcrypt.hash(data.password, 10);
     }
-
-    return await this.prisma.user.update({
+    const updateData: Prisma.UserUpdateInput = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.username !== undefined) updateData.username = data.username;
+    if (hashedPassword !== undefined) updateData.password = hashedPassword;
+    if (data.isActive !== undefined) updateData.isActive = data.isActive;
+    if (data.roleId !== undefined) {
+      updateData.roles = {
+        deleteMany: {},
+        create: { role: { connect: { id: BigInt(data.roleId) } } },
+      };
+    }
+    const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: {
-        username: data.username?.toLowerCase(),
-        email: data.email?.toLowerCase(),
-        password_hash: hashedPassword ?? undefined,
-        full_name: data.full_name,
-        role: data.role,
-        is_active: data.is_active,
-      },
+      data: updateData,
       select: {
         id: true,
-        username: true,
+        name: true,
         email: true,
-        full_name: true,
-        role: true,
-        is_active: true,
+        username: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        roles: {
+          select: {
+            role: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
+    return {
+      ...updatedUser,
+      role: updatedUser.roles[0]?.role.name ?? null,
+      roles: undefined,
+    };
   }
 
-  remove(id: number) {
-    return this.prisma.user.delete({ where: { id } });
+  async remove(id: bigint) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    return this.prisma.user.delete({
+      where: { id },
+    });
   }
 }

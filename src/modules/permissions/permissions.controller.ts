@@ -1,39 +1,41 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { PermissionsService } from './permissions.service';
+import { CreatePermissionDto } from './dto/create-permission.dto';
+import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { JwtGuard } from '@/common/guards/jwt.guard';
-import { Query, ValidationPipe, UsePipes } from '@nestjs/common';
 import { QueryParamsDto } from './dto/query-params.dto';
 import { AccessGuard } from '@/common/guards/access.guard';
 import { Permission } from '@/common/decorators/access.decorator';
 
-@Controller('users')
+@Controller('permissions')
 @UseGuards(JwtGuard, AccessGuard)
-export class UsersController {
-  constructor(private readonly service: UsersService) {}
+export class PermissionsController {
+  constructor(private readonly service: PermissionsService) {}
 
   @Post()
-  @Permission('create user')
-  async create(@Body() dto: CreateUserDto) {
+  @Permission('create permission')
+  async create(@Body() dto: CreatePermissionDto) {
     const data = await this.service.create(dto);
     return {
-      message: 'User created successfully',
+      message: 'Permission created successfully',
       data,
     };
   }
 
   @Get()
-  @Permission('data user')
+  @Permission('data permission')
   @UsePipes(new ValidationPipe({ transform: true }))
   async findAll(@Query() query: QueryParamsDto) {
     const page = query.page ?? 1;
@@ -41,37 +43,37 @@ export class UsersController {
     const search = query.search ?? '';
     const result = await this.service.findAll(page, perPage, search);
     return {
-      message: 'All users retrieved',
+      message: 'All permissions retrieved',
       ...result,
     };
   }
 
   @Get(':id')
-  @Permission('detail user')
+  @Permission('detail permission')
   async findOne(@Param('id') id: string) {
     const data = await this.service.findOne(BigInt(id));
     return {
-      message: 'User retrieved',
+      message: 'Permission retrieved',
       data,
     };
   }
 
   @Patch(':id')
-  @Permission('update user')
-  async update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+  @Permission('update permission')
+  async update(@Param('id') id: string, @Body() dto: UpdatePermissionDto) {
     const data = await this.service.update(BigInt(id), dto);
     return {
-      message: 'User updated successfully',
+      message: 'Permission updated successfully',
       data,
     };
   }
 
   @Delete(':id')
-  @Permission('delete user')
+  @Permission('delete permission')
   async remove(@Param('id') id: string) {
     const data = await this.service.remove(BigInt(id));
     return {
-      message: 'User deleted successfully',
+      message: 'Permission deleted successfully',
       data,
     };
   }
