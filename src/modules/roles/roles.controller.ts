@@ -17,13 +17,16 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { JwtGuard } from '@/common/guards/jwt.guard';
 import { AssignPermissionDto } from './dto/assign-permission.dto';
 import { QueryParamsDto } from './dto/query-params.dto';
+import { AccessGuard } from '@/common/guards/access.guard';
+import { Permission } from '@/common/decorators/access.decorator';
 
 @Controller('roles')
-@UseGuards(JwtGuard)
+@UseGuards(JwtGuard, AccessGuard)
 export class RolesController {
   constructor(private readonly service: RolesService) {}
 
   @Post()
+  @Permission('create role')
   async create(@Body() dto: CreateRoleDto) {
     const data = await this.service.create(dto);
     return {
@@ -33,6 +36,7 @@ export class RolesController {
   }
 
   @Get()
+  @Permission('data role')
   @UsePipes(new ValidationPipe({ transform: true }))
   async findAll(@Query() query: QueryParamsDto) {
     const page = query.page ?? 1;
@@ -46,6 +50,7 @@ export class RolesController {
   }
 
   @Get(':id')
+  @Permission('detail role')
   async findOne(@Param('id') id: string) {
     const data = await this.service.findOne(BigInt(id));
     return {
@@ -55,6 +60,7 @@ export class RolesController {
   }
 
   @Patch(':id')
+  @Permission('update role')
   async update(@Param('id') id: string, @Body() dto: UpdateRoleDto) {
     const data = await this.service.update(BigInt(id), dto);
     return {
@@ -64,6 +70,7 @@ export class RolesController {
   }
 
   @Delete(':id')
+  @Permission('delete role')
   async remove(@Param('id') id: string) {
     const data = await this.service.remove(BigInt(id));
     return {
@@ -73,6 +80,7 @@ export class RolesController {
   }
 
   @Post(':id/permissions')
+  @Permission('update role')
   async assignPermissions(
     @Param('id') id: string,
     @Body() dto: AssignPermissionDto,

@@ -14,13 +14,16 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtGuard } from '@/common/guards/jwt.guard';
 import { Query, ValidationPipe, UsePipes } from '@nestjs/common';
 import { QueryParamsDto } from './dto/query-params.dto';
+import { AccessGuard } from '@/common/guards/access.guard';
+import { Permission } from '@/common/decorators/access.decorator';
 
 @Controller('users')
-@UseGuards(JwtGuard)
+@UseGuards(JwtGuard, AccessGuard)
 export class UsersController {
   constructor(private readonly service: UsersService) {}
 
   @Post()
+  @Permission('create user')
   async create(@Body() dto: CreateUserDto) {
     const data = await this.service.create(dto);
     return {
@@ -30,6 +33,7 @@ export class UsersController {
   }
 
   @Get()
+  @Permission('data user')
   @UsePipes(new ValidationPipe({ transform: true }))
   async findAll(@Query() query: QueryParamsDto) {
     const page = query.page ?? 1;
@@ -43,6 +47,7 @@ export class UsersController {
   }
 
   @Get(':id')
+  @Permission('detail user')
   async findOne(@Param('id') id: string) {
     const data = await this.service.findOne(BigInt(id));
     return {
@@ -52,6 +57,7 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @Permission('update user')
   async update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     const data = await this.service.update(BigInt(id), dto);
     return {
@@ -61,6 +67,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @Permission('delete user')
   async remove(@Param('id') id: string) {
     const data = await this.service.remove(BigInt(id));
     return {
