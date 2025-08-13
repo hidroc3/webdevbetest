@@ -1,38 +1,37 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
-import { UserInterface } from '@/common/interfaces/user.interface';
-import { PaginationInterface } from '@/common/interfaces/pagination.interface';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateUserDto): Promise<UserInterface> {
-    const emailLower = data.email.toLowerCase();
-    const usernameLower = data.username.toLowerCase();
-
-    const existingUsername = await this.prisma.user.findUnique({
-      where: { username: usernameLower },
+  async create(data: CreateUserDto) {
+    const uniqueUsername = await this.prisma.user.findUnique({
+      where: { username: data.username },
     });
-    if (existingUsername)
+    if (uniqueUsername) {
       throw new BadRequestException('Username already exists');
-
-    const existingEmail = await this.prisma.user.findUnique({
-      where: { email: emailLower },
+    }
+    const uniqueEmail = await this.prisma.user.findUnique({
+      where: { email: data.email },
     });
-    if (existingEmail) throw new BadRequestException('Email already exists');
-
+    if (uniqueEmail) {
+      throw new BadRequestException('Email already exists');
+    }
     const hashedPassword = await bcrypt.hash(data.password, 10);
-
     const user = await this.prisma.user.create({
       data: {
         name: data.name,
-        email: emailLower,
-        username: usernameLower,
+        email: data.email,
+        username: data.username,
         password: hashedPassword,
         isActive: data.isActive ?? true,
         roles: data.roleId
@@ -56,28 +55,20 @@ export class UsersService {
             role: {
               select: {
                 name: true,
-                permissions: {
-                  select: {
-                    permission: {
-                      select: { name: true },
-                    },
-                  },
-                },
               },
             },
           },
         },
       },
     });
-
-    return this.formatResponse(user);
+    return {
+      ...user,
+      role: user.roles[0]?.role.name ?? null,
+      roles: undefined,
+    };
   }
 
-  async findAll(
-    page = 1,
-    perPage = 10,
-    search = '',
-  ): Promise<PaginationInterface<UserInterface>> {
+  async findAll(page = 1, perPage = 10, search = '') {
     const skip = (page - 1) * perPage;
     const where = search
       ? {
@@ -88,7 +79,6 @@ export class UsersService {
           ],
         }
       : {};
-
     const [total, data] = await Promise.all([
       this.prisma.user.count({ where }),
       this.prisma.user.findMany({
@@ -108,13 +98,6 @@ export class UsersService {
               role: {
                 select: {
                   name: true,
-                  permissions: {
-                    select: {
-                      permission: {
-                        select: { name: true },
-                      },
-                    },
-                  },
                 },
               },
             },
@@ -124,7 +107,11 @@ export class UsersService {
     ]);
     const totalPages = Math.ceil(total / perPage);
     return {
-      data: data.map((item) => this.formatResponse(item)),
+      data: data.map((user) => ({
+        ...user,
+        role: user.roles[0]?.role.name ?? null,
+        roles: undefined,
+      })),
       total,
       page,
       perPage,
@@ -132,7 +119,7 @@ export class UsersService {
     };
   }
 
-  async findOne(id: bigint): Promise<UserInterface | null> {
+  async findOne(id: bigint) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
@@ -148,65 +135,49 @@ export class UsersService {
             role: {
               select: {
                 name: true,
-                permissions: {
-                  select: {
-                    permission: {
-                      select: { name: true },
-                    },
-                  },
-                },
               },
             },
           },
         },
       },
     });
-
-    if (!user) return null;
-
-    return this.formatResponse(user);
+    if (!user) throw new NotFoundException('User not found');
+    return {
+      ...user,
+      role: user.roles[0]?.role.name ?? null,
+      roles: undefined,
+    };
   }
 
-  async update(id: bigint, data: UpdateUserDto): Promise<UserInterface> {
-    const emailLower = data.email?.toLowerCase();
-    const usernameLower = data.username?.toLowerCase();
-
-    if (usernameLower) {
-      const existingUsername = await this.prisma.user.findUnique({
-        where: { username: usernameLower },
-      });
-      if (existingUsername && existingUsername.id !== id)
-        throw new BadRequestException('Username already exists');
+  async update(id: bigint, data: UpdateUserDto) {
+    const uniqueUsername = await this.prisma.user.findUnique({
+      where: { username: data.username },
+    });
+    if (uniqueUsername && BigInt(uniqueUsername.id) !== id) {
+      throw new BadRequestException('Username already exists');
     }
-
-    if (emailLower) {
-      const existingEmail = await this.prisma.user.findUnique({
-        where: { email: emailLower },
-      });
-      if (existingEmail && existingEmail.id !== id)
-        throw new BadRequestException('Email already exists');
+    const uniqueEmail = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
+    if (uniqueEmail && BigInt(uniqueEmail.id) !== id) {
+      throw new BadRequestException('Email already exists');
     }
-
     let hashedPassword: string | undefined;
     if (data.password) {
       hashedPassword = await bcrypt.hash(data.password, 10);
     }
-
     const updateData: Prisma.UserUpdateInput = {};
-
     if (data.name !== undefined) updateData.name = data.name;
-    if (emailLower !== undefined) updateData.email = emailLower;
-    if (usernameLower !== undefined) updateData.username = usernameLower;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.username !== undefined) updateData.username = data.username;
     if (hashedPassword !== undefined) updateData.password = hashedPassword;
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
-
     if (data.roleId !== undefined) {
       updateData.roles = {
         deleteMany: {},
         create: { role: { connect: { id: BigInt(data.roleId) } } },
       };
     }
-
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: updateData,
@@ -223,59 +194,24 @@ export class UsersService {
             role: {
               select: {
                 name: true,
-                permissions: {
-                  select: {
-                    permission: {
-                      select: { name: true },
-                    },
-                  },
-                },
               },
             },
           },
         },
       },
     });
-
-    return this.formatResponse(updatedUser);
+    return {
+      ...updatedUser,
+      role: updatedUser.roles[0]?.role.name ?? null,
+      roles: undefined,
+    };
   }
 
   async remove(id: bigint) {
-    await this.prisma.user.delete({ where: { id } });
-    return { message: 'User deleted successfully' };
-  }
-
-  private formatResponse(user: {
-    id: bigint;
-    name: string;
-    email: string;
-    username: string;
-    isActive: boolean;
-    createdAt?: Date;
-    updatedAt?: Date;
-    roles: {
-      role: {
-        name: string;
-        permissions: { permission: { name: string } }[];
-      };
-    }[];
-  }): UserInterface {
-    const roleName = user.roles.length > 0 ? user.roles[0].role.name : null;
-    const permissions =
-      user.roles.length > 0
-        ? user.roles[0].role.permissions.map((p) => p.permission.name)
-        : [];
-
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      username: user.username,
-      isActive: user.isActive,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      role: roleName,
-      permissions,
-    };
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    return this.prisma.user.delete({
+      where: { id },
+    });
   }
 }

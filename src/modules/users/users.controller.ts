@@ -23,7 +23,10 @@ export class UsersController {
   @Post()
   async create(@Body() dto: CreateUserDto) {
     const data = await this.service.create(dto);
-    return { message: 'User created successfully', data };
+    return {
+      message: 'User created successfully',
+      data,
+    };
   }
 
   @Get()
@@ -42,18 +45,27 @@ export class UsersController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const data = await this.service.findOne(BigInt(id));
-    return { message: 'User retrieved', data };
+    return {
+      message: 'User retrieved',
+      data,
+    };
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     const data = await this.service.update(BigInt(id), dto);
-    return { message: 'User updated successfully', data };
+    return {
+      message: 'User updated successfully',
+      data,
+    };
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
     const data = await this.service.remove(BigInt(id));
-    return { message: 'User deleted successfully', data };
+    return {
+      message: 'User deleted successfully',
+      data,
+    };
   }
 }
