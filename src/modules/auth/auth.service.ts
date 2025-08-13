@@ -3,9 +3,7 @@ import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { AuthInterface } from '@/common/interfaces/auth.interface';
-import { UserInterface } from '@/common/interfaces/user.interface';
-import { JwtInterface } from '@/common/interfaces/jwt.interface';
+import { AuthInterface } from './interface/auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -14,9 +12,33 @@ export class AuthService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async login(data: LoginDto): Promise<JwtInterface> {
+  async login(data: LoginDto) {
     const user = await this.prisma.user.findUnique({
-      where: { email: data.email.toLowerCase() },
+      where: { email: data.email },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        isActive: true,
+        roles: {
+          select: {
+            role: {
+              select: {
+                name: true,
+                permissions: {
+                  select: {
+                    permission: {
+                      select: {
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -30,9 +52,9 @@ export class AuthService {
     }
     const payload: AuthInterface = {
       id: user.id.toString(),
-      name: user.name,
       email: user.email,
-      username: user.username,
+      role: user.roles[0].role.name,
+      permissions: user.roles[0].role.permissions.map((p) => p.permission.name),
     };
     const token = this.jwtService.sign(payload);
     return {
@@ -41,7 +63,7 @@ export class AuthService {
     };
   }
 
-  async user(id: bigint): Promise<UserInterface | null> {
+  async user(id: bigint) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: {

@@ -12,7 +12,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { Request } from 'express';
 import { JwtGuard } from '@/common/guards/jwt.guard';
-import { AuthInterface } from '@/common/interfaces/auth.interface';
+import { AuthInterface } from '@/modules/auth/interface/auth.interface';
 
 @Controller('auth')
 export class AuthController {
