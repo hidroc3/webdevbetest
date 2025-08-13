@@ -3,7 +3,7 @@ import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { AuthInterface } from './interface/auth.interface';
+import { JwtInterface } from '../../common/interface/jwt.interface';
 
 @Injectable()
 export class AuthService {
@@ -50,7 +50,7 @@ export class AuthService {
     if (!user.isActive) {
       throw new UnauthorizedException('User account is inactive');
     }
-    const payload: AuthInterface = {
+    const payload: JwtInterface = {
       id: user.id.toString(),
       email: user.email,
       role: user.roles[0].role.name,

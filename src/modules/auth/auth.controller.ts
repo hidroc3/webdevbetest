@@ -12,7 +12,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { Request } from 'express';
 import { JwtGuard } from '@/common/guards/jwt.guard';
-import { AuthInterface } from '@/modules/auth/interface/auth.interface';
+import { JwtInterface } from '@/common/interface/jwt.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -31,7 +31,7 @@ export class AuthController {
   @Get('user')
   @UseGuards(JwtGuard)
   async user(@Req() req: Request) {
-    const id = (req.user as AuthInterface).id;
+    const id = (req.user as JwtInterface).id;
     const data = await this.authService.user(BigInt(id));
     return {
       message: 'User retrieved',

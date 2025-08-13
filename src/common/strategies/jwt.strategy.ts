@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { AuthInterface } from '@/modules/auth/interface/auth.interface';
-import { AuthService } from './auth.service';
+import { JwtInterface } from '@/common/interface/jwt.interface';
+import { AuthService } from '@/modules/auth/auth.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -14,7 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: AuthInterface) {
+  async validate(payload: JwtInterface) {
     return this.authService.user(BigInt(payload.id));
   }
 }
