@@ -457,16 +457,16 @@ CREATE TABLE [dbo].[sirine] (
 );
 
 -- AddForeignKey
-ALTER TABLE [dbo].[user_has_role] ADD CONSTRAINT [user_has_role_user_id_fkey] FOREIGN KEY ([user_id]) REFERENCES [dbo].[user]([id]) ON DELETE NO ACTION ON UPDATE CASCADE;
+ALTER TABLE [dbo].[user_has_role] ADD CONSTRAINT [user_has_role_user_id_fkey] FOREIGN KEY ([user_id]) REFERENCES [dbo].[user]([id]) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE [dbo].[user_has_role] ADD CONSTRAINT [user_has_role_role_id_fkey] FOREIGN KEY ([role_id]) REFERENCES [dbo].[role]([id]) ON DELETE NO ACTION ON UPDATE CASCADE;
+ALTER TABLE [dbo].[user_has_role] ADD CONSTRAINT [user_has_role_role_id_fkey] FOREIGN KEY ([role_id]) REFERENCES [dbo].[role]([id]) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE [dbo].[role_has_permission] ADD CONSTRAINT [role_has_permission_role_id_fkey] FOREIGN KEY ([role_id]) REFERENCES [dbo].[role]([id]) ON DELETE NO ACTION ON UPDATE CASCADE;
+ALTER TABLE [dbo].[role_has_permission] ADD CONSTRAINT [role_has_permission_role_id_fkey] FOREIGN KEY ([role_id]) REFERENCES [dbo].[role]([id]) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE [dbo].[role_has_permission] ADD CONSTRAINT [role_has_permission_permission_id_fkey] FOREIGN KEY ([permission_id]) REFERENCES [dbo].[permission]([id]) ON DELETE NO ACTION ON UPDATE CASCADE;
+ALTER TABLE [dbo].[role_has_permission] ADD CONSTRAINT [role_has_permission_permission_id_fkey] FOREIGN KEY ([permission_id]) REFERENCES [dbo].[permission]([id]) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE [dbo].[city] ADD CONSTRAINT [city_provinceId_fkey] FOREIGN KEY ([provinceId]) REFERENCES [dbo].[province]([id]) ON DELETE CASCADE ON UPDATE CASCADE;
