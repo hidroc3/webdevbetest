@@ -4,8 +4,9 @@ import {
   Post,
   Patch,
   Delete,
-  Param,
   Body,
+  Query,
+  Param,
 } from '@nestjs/common';
 import { ArrLogsService } from './arr-logs.service';
 import { CreateArrLogDto } from './dto/create-arr-log.dto';
@@ -15,85 +16,81 @@ import { UpdateArrLogDto } from './dto/update-arr-log.dto';
 export class ArrLogsController {
   constructor(private readonly arrLogsService: ArrLogsService) {}
 
-  // POST /arr-logs
   @Post()
   async create(@Body() dto: CreateArrLogDto) {
-    const created = await this.arrLogsService.create(dto);
-    const { id, ...rest } = created;
-    return {
-      message: 'Log successfully created',
-      data: rest,
-    };
+    const data = await this.arrLogsService.create(dto);
+    return { message: 'Log created successfully', data };
   }
 
-  // 🔸 GET /arr-logs — semua log hari ini (semua stasiun)
   @Get()
-  async findAllToday() {
-    const logs = await this.arrLogsService.findAllToday();
-    const filtered = logs.map(({ id, ...rest }) => rest);
-    return {
-      message: "Today's data fetched successfully (WIB)",
-      data: filtered,
-    };
-  }
-
-  // 🔹 GET /arr-logs/all — semua log semua stasiun
-  @Get('all')
-  async findAll() {
-    const logs = await this.arrLogsService.findAll();
-    const filtered = logs.map(({ id, ...rest }) => rest);
-    return {
-      message: 'All data fetched successfully',
-      data: filtered,
-    };
-  }
-
-  // 🔸 GET /arr-logs/station/:arr_station_id — log hari ini (per stasiun)
-  @Get('station/:arr_station_id')
-  async findTodayByStation(@Param('arr_station_id') arr_station_id: string) {
-    const logs =
-      await this.arrLogsService.findTodayByStationId(+arr_station_id);
-    const filtered = logs.map(({ id, ...rest }) => rest);
-    return {
-      message: `Today's data fetched for station ${arr_station_id} (WIB)`,
-      data: filtered,
-    };
-  }
-
-  // 🔹 GET /arr-logs/station/:arr_station_id/all — semua log per stasiun
-  @Get('station/:arr_station_id/all')
-  async findAllByStation(@Param('arr_station_id') arr_station_id: string) {
-    const logs = await this.arrLogsService.findAllByStationId(+arr_station_id);
-    const filtered = logs.map(({ id, ...rest }) => rest);
-    return {
-      message: `All data fetched for station ${arr_station_id}`,
-      data: filtered,
-    };
-  }
-
-  // PATCH /arr-logs/station/:arr_station_id
-  @Patch('station/:arr_station_id')
-  async update(
-    @Param('arr_station_id') arr_station_id: string,
-    @Body() dto: UpdateArrLogDto,
+  async findFiltered(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
-    const result = await this.arrLogsService.updateByStationId(
-      +arr_station_id,
-      dto,
+    const result = await this.arrLogsService.findFiltered(
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 10,
+      search,
+      startDate,
+      endDate,
     );
-    return {
-      message: `Logs successfully updated for station ${arr_station_id}`,
-      data: result,
-    };
+    return { message: 'Data fetched successfully', ...result };
   }
 
-  // DELETE /arr-logs/station/:arr_station_id
-  @Delete('station/:arr_station_id')
-  async remove(@Param('arr_station_id') arr_station_id: string) {
-    const result = await this.arrLogsService.removeByStationId(+arr_station_id);
-    return {
-      message: `Logs successfully deleted for station ${arr_station_id}`,
-      data: result,
-    };
+  @Patch(':id')
+  async updateById(@Param('id') id: string, @Body() dto: UpdateArrLogDto) {
+    const data = await this.arrLogsService.updateById(+id, dto);
+    return { message: `Log ${id} updated successfully`, data };
+  }
+
+  @Delete(':id')
+  async deleteById(@Param('id') id: string) {
+    const data = await this.arrLogsService.deleteById(+id);
+    return { message: `Log ${id} deleted successfully`, data };
+  }
+
+  @Delete()
+  async deleteAll() {
+    const data = await this.arrLogsService.deleteAll();
+    return { message: 'All logs deleted successfully', data };
+  }
+
+  @Get('sum/hour')
+  async sumRainfallPerHour(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const data = await this.arrLogsService.sumRainfallPerHour(
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 10,
+      search,
+      startDate,
+      endDate,
+    );
+    return { message: 'Sum rainfall per hour fetched successfully', ...data };
+  }
+
+  @Get('sum/day')
+  async sumRainfallPerDay(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const data = await this.arrLogsService.sumRainfallPerDay(
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 10,
+      search,
+      startDate,
+      endDate,
+    );
+    return { message: 'Sum rainfall per day fetched successfully', ...data };
   }
 }

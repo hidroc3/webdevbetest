@@ -6,6 +6,10 @@ export class CreateAwsLogDto {
   aws_station_id?: number;
 
   @IsOptional()
+  @IsString()
+  post_name?: string;
+
+  @IsOptional()
   @IsDateString()
   time?: Date;
 

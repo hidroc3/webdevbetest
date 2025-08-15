@@ -20,15 +20,12 @@ export class VehiclesService {
   }
 
   findAll() {
-    return this.prisma.vehicle.findMany({
-      include: { vehicleTrackingLogs: true },
-    });
+    return this.prisma.vehicle.findMany({});
   }
 
   findOne(id: bigint) {
     return this.prisma.vehicle.findUnique({
       where: { id },
-      include: { vehicleTrackingLogs: true },
     });
   }
 

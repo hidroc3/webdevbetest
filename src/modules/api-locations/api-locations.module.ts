@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/prisma/prisma.module';
-import { LocationsSyncService } from './api-locations-sync.service';
+import { ApiLocationsSyncService } from './api-locations-sync.service';
 
 @Module({
   imports: [PrismaModule],
-  providers: [LocationsSyncService],
-  exports: [LocationsSyncService],
+  providers: [ApiLocationsSyncService],
+  exports: [ApiLocationsSyncService],
 })
 export class LocationsModule {}

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateArrLogDto } from './dto/create-arr-log.dto';
 import { UpdateArrLogDto } from './dto/update-arr-log.dto';
@@ -11,85 +11,185 @@ export class ArrLogsService {
     return this.prisma.arrLog.create({ data });
   }
 
-  // 🔸 Semua data hari ini (semua stasiun)
-  findAllToday() {
-    const [start, end] = this.getTodayRange();
-    return this.prisma.arrLog.findMany({
-      where: { time: { gte: start, lte: end } },
-      orderBy: { time: 'desc' },
-    });
-  }
+  async findFiltered(
+    page = 1,
+    limit = 10,
+    search?: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    const skip = (page - 1) * limit;
+    const where: any = {};
 
-  // 🔹 Semua data tanpa filter waktu
-  findAll() {
-    return this.prisma.arrLog.findMany({
-      orderBy: { time: 'desc' },
-    });
-  }
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
 
-  // 🔸 Hari ini berdasarkan stasiun
-  findTodayByStationId(arr_station_id: number) {
-    const [start, end] = this.getTodayRange();
-    return this.prisma.arrLog.findMany({
-      where: {
-        arr_station_id,
-        time: { gte: start, lte: end },
-      },
-      orderBy: { time: 'desc' },
-    });
-  }
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        throw new BadRequestException('Invalid date format');
+      }
 
-  // 🔹 Semua data berdasarkan stasiun
-  findAllByStationId(arr_station_id: number) {
-    return this.prisma.arrLog.findMany({
-      where: { arr_station_id },
-      orderBy: { time: 'desc' },
-    });
-  }
+      if (end.getTime() - start.getTime() > 31 * 24 * 60 * 60 * 1000) {
+        throw new BadRequestException('Date range cannot exceed 1 month');
+      }
 
-  updateByStationId(arr_station_id: number, data: UpdateArrLogDto) {
-    return this.prisma.arrLog.updateMany({
-      where: { arr_station_id },
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+
+      where.time = { gte: start, lte: end };
+    }
+
+    if (search) {
+      where.post_name = { contains: search };
+    }
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.arrLog.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { time: 'desc' },
+      }),
+      this.prisma.arrLog.count({ where }),
+    ]);
+
+    return {
       data,
-    });
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
-  removeByStationId(arr_station_id: number) {
-    return this.prisma.arrLog.deleteMany({
-      where: { arr_station_id },
-    });
+  updateById(id: number, data: UpdateArrLogDto) {
+    return this.prisma.arrLog.update({ where: { id }, data });
   }
 
-  // 🔧 Helper: Range waktu hari ini (00:00–23:59 WIB)
-  private getTodayRange(): [Date, Date] {
-    const now = new Date();
-    const wibOffset = 7 * 60 * 60 * 1000;
-    const wibNow = new Date(now.getTime() + wibOffset);
+  deleteById(id: number) {
+    return this.prisma.arrLog.delete({ where: { id } });
+  }
 
-    const start = new Date(
-      Date.UTC(
-        wibNow.getUTCFullYear(),
-        wibNow.getUTCMonth(),
-        wibNow.getUTCDate(),
-        0,
-        0,
-        0,
-        0,
-      ),
-    );
+  deleteAll() {
+    return this.prisma.arrLog.deleteMany({});
+  }
 
-    const end = new Date(
-      Date.UTC(
-        wibNow.getUTCFullYear(),
-        wibNow.getUTCMonth(),
-        wibNow.getUTCDate(),
-        23,
-        59,
-        59,
-        999,
-      ),
-    );
+  // SUM curah hujan per jam
+  async sumRainfallPerHour(
+    page = 1,
+    limit = 10,
+    search?: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    if (!startDate || !endDate) {
+      throw new BadRequestException('startDate and endDate are required');
+    }
 
-    return [start, end];
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new BadRequestException('Invalid date format');
+    }
+
+    const allLogs = await this.prisma.arrLog.findMany({
+      where: {
+        time: { gte: start, lte: end },
+        ...(search ? { post_name: { contains: search } } : {}),
+      },
+      orderBy: { time: 'asc' },
+    });
+
+    const grouped: Record<string, number> = {};
+    allLogs.forEach((log) => {
+      if (!log.time) return;
+      const hourKey = log.time.toISOString().slice(0, 13); // yyyy-mm-ddTHH
+      grouped[hourKey] = (grouped[hourKey] || 0) + (log.rainfall ?? 0);
+    });
+
+    const keys = Object.keys(grouped).sort();
+    const pagedKeys = keys.slice((page - 1) * limit, page * limit);
+
+    const data = pagedKeys.map((key) => ({
+      time: key,
+      totalRainfall: grouped[key],
+      status: this.calculateStatus(grouped[key]),
+    }));
+
+    return {
+      data,
+      total: keys.length,
+      page,
+      limit,
+      totalPages: Math.ceil(keys.length / limit),
+    };
+  }
+
+  // SUM curah hujan per hari
+  async sumRainfallPerDay(
+    page = 1,
+    limit = 10,
+    search?: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    if (!startDate || !endDate) {
+      throw new BadRequestException('startDate and endDate are required');
+    }
+
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new BadRequestException('Invalid date format');
+    }
+
+    const allLogs = await this.prisma.arrLog.findMany({
+      where: {
+        time: { gte: start, lte: end },
+        ...(search ? { post_name: { contains: search } } : {}),
+      },
+      orderBy: { time: 'asc' },
+    });
+
+    const groupedDay: Record<string, number> = {};
+    allLogs.forEach((log) => {
+      if (!log.time) return;
+      const dayKey = log.time.toISOString().slice(0, 10); // yyyy-mm-dd
+      groupedDay[dayKey] = (groupedDay[dayKey] || 0) + (log.rainfall ?? 0);
+    });
+
+    const keys = Object.keys(groupedDay).sort();
+    const pagedKeys = keys.slice((page - 1) * limit, page * limit);
+
+    const data = pagedKeys.map((key) => ({
+      date: key,
+      totalRainfall: groupedDay[key],
+      status: this.calculateStatus(groupedDay[key]),
+    }));
+
+    return {
+      data,
+      total: keys.length,
+      page,
+      limit,
+      totalPages: Math.ceil(keys.length / limit),
+    };
+  }
+
+  // Kriteria status curah hujan
+  private calculateStatus(rainfall?: number): string {
+    if (rainfall === undefined || rainfall === null) return 'Tidak Diketahui';
+    if (rainfall === 0) return 'Berawan';
+    if (rainfall > 0 && rainfall <= 5) return 'Hujan Ringan';
+    if (rainfall > 5 && rainfall <= 10) return 'Hujan Sedang';
+    if (rainfall > 10 && rainfall <= 20) return 'Hujan Lebat';
+    if (rainfall > 20) return 'Hujan Sangat Lebat';
+    return 'Tidak Diketahui';
   }
 }

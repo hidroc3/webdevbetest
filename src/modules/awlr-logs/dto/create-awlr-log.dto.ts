@@ -1,17 +1,39 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsDateString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateAwlrLogDto {
-  @IsNumber()
+  @IsOptional()
   @Type(() => Number)
-  awlr_id: number;
+  @IsNumber()
+  awlr_station_id?: number;
 
+  @IsOptional()
   @IsString()
-  time: string;
+  post_name?: string;
+
+  @IsOptional()
+  @IsDateString()
+  time?: Date;
 
   @IsOptional()
   @Type(() => Number)
+  @IsNumber()
   water_level?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  debit?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  battery?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  panel_temperature?: number;
 
   @IsOptional()
   @IsString()

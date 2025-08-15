@@ -21,26 +21,21 @@ import { ArrStationsModule } from './modules/arr-stations/arr-stations.module';
 import { ArrLogsModule } from './modules/arr-logs/arr-logs.module';
 import { ContactWaModule } from './modules/contact-wa/contact-wa.module';
 import { MessageWaModule } from './modules/message-wa/message-wa.module';
-import { ArrLogManualsModule } from './modules/arr-log-manuals/arr-log-manuals.module';
-import { AwlrLogManualsModule } from './modules/awlr-log-manuals/awlr-log-manuals.module';
-import { AwsLogManualsModule } from './modules/aws-log-manuals/aws-log-manuals.module';
-// import { PostGuardsModule } from './modules/post-guards/post-guards.module';
-// import { PostHydrologicModule } from './modules/post-hydrologic/post-hydrologic.module';
 import { UsersModule } from './modules/users/users.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { ReportDetailsModule } from './modules/report-details/report-details.module';
 import { HydrologyRequestsModule } from './modules/hydrology-requests/hydrology-requests.module';
 import { HydraulicOutputHecrasModule } from './modules/hydraulic-output-hecras/hydraulic-output-hecras.module';
 import { HydrologicOutputHechmsModule } from './modules/hydrologic-output-hechms/hydrologic-output-hechms.module';
-import { VehiclesModule } from './modules/vehicles/vehicles.module';
-import { VehicleTrackingLogsModule } from './modules/vehicle-tracking-logs/vehicle-tracking-logs.module';
 
 // Wilayah
-// import { LocationsModule } from './modules/locations/locations.module';
+import { LocationsModule } from './modules/api-locations/api-locations.module';
 // get data vendor Aptech
 import { AptechModule } from './modules/api-aptech/api-aptech.module';
 // get data vendor Higertech
 import { HigertechModule } from './modules/api-higertech/api-higertech.module';
+
+import { VehiclesModule } from './modules/vehicles/vehicles.module';
 // Scheduller
 import { ScheduleModule } from '@nestjs/schedule';
 // Sirine
@@ -70,22 +65,16 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
     ArrLogsModule,
     ContactWaModule,
     MessageWaModule,
-    ArrLogManualsModule,
-    AwlrLogManualsModule,
-    AwsLogManualsModule,
-    // PostGuardsModule, // untuk mobile
-    // PostHydrologicModule, // untuk mobile
     UsersModule,
     ReportsModule,
     ReportDetailsModule,
     HydrologyRequestsModule,
     HydraulicOutputHecrasModule,
     HydrologicOutputHechmsModule,
-    VehiclesModule,
-    VehicleTrackingLogsModule,
-    // LocationsModule, // jalankan sekali saja
+    LocationsModule, // jalankan sekali saja
     AptechModule, // get data per-5 menit
     HigertechModule, // get data per-5 menit
+    VehiclesModule,
     SirineModule,
     ApiSirineEagleioModule,
     AuthModule,

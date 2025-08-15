@@ -1,19 +1,4 @@
-import { IsOptional, IsNumber, IsDate, IsString } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateArrStationDto } from './create-arr-station.dto';
 
-export class UpdateArrStationDto {
-  @IsOptional()
-  @IsDate()
-  time?: Date;
-
-  @IsOptional()
-  @IsNumber()
-  rainfall?: number;
-
-  @IsOptional()
-  @IsNumber()
-  battery?: number;
-
-  @IsOptional()
-  @IsString()
-  post_name?: string; 
-}
+export class UpdateArrStationDto extends PartialType(CreateArrStationDto) {}
