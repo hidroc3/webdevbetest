@@ -18,10 +18,6 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   roles          UserHasRole[]
-  arrLogManuals  ArrLogManual[]
-  awlrLogManuals AwlrLogManual[]
-  awsLogManuals  AwsLogManual[]
-  postGuards     PostGuard[]
 
   @@map("user")
 }
@@ -153,11 +149,12 @@ model AwsStation {
   built_year          String?
   renovated_by        String?
   renovated_year      String?
-  alert_level_1       Int?
-  alert_level_2       Int?
-  alert_level_3       Int?
-  alert_level_4       Int?
+  alert_level_1       Float?
+  alert_level_2       Float?
+  alert_level_3       Float?
+  alert_level_4       Float?
   status              String?
+  is_active           Boolean?                 @default(true)
   logs                AwsLog[]
   das                 Das?                     @relation(fields: [dasId], references: [id])
   hydrologicOutputs   HydrologicOutputHechms[]
@@ -206,14 +203,15 @@ model AwlrStation {
   built_year        String?
   renovated_by      String?
   renovated_year    String?
-  alert_level_1     Int?
-  alert_level_2     Int?
-  alert_level_3     Int?
-  alert_level_4     Int?
+  alert_level_1     Float?
+  alert_level_2     Float?
+  alert_level_3     Float?
   status            String?
+  is_active         Boolean?                 @default(true)
   logs              AwlrLog[]
   das               Das?                     @relation(fields: [dasId], references: [id])
   hydrologicOutputs HydrologicOutputHechms[]
+  riverSections     RiverSectionPoint[]
 
   @@map("awlr_stations")
 }
@@ -223,11 +221,11 @@ model AwlrLog {
   awlr_station_id   BigInt?
   time              DateTime?
   water_level       Float?
-  debit             Float?
   battery           Float?
   panel_temperature Float?
   status            String?
   post_name         String?
+  debit             Float?
   station           AwlrStation? @relation(fields: [awlr_station_id], references: [id], onDelete: Cascade)
 
   @@map("awlr_logs")
@@ -251,11 +249,12 @@ model ArrStation {
   built_year        String?
   renovated_by      String?
   renovated_year    String?
-  alert_level_1     Int?
-  alert_level_2     Int?
-  alert_level_3     Int?
-  alert_level_4     Int?
+  alert_level_1     Float?
+  alert_level_2     Float?
+  alert_level_3     Float?
+  alert_level_4     Float?
   status            String?
+  is_active         Boolean?                 @default(true)
   logs              ArrLog[]
   das               Das?                     @relation(fields: [dasId], references: [id])
   hydrologicOutputs HydrologicOutputHechms[]
@@ -297,78 +296,6 @@ model MessageWa {
   contact     ContactWa? @relation(fields: [contact_id], references: [id], onDelete: Cascade)
 
   @@map("message_wa")
-}
-
-model ArrLogManual {
-  id      BigInt          @id @default(autoincrement())
-  user_id BigInt?
-  arr_id  BigInt?
-  time    String?
-  date    DateTime?
-  value   Float?
-  unit    String?
-  arr     PostHydrologic? @relation(fields: [arr_id], references: [id])
-  user    User?           @relation(fields: [user_id], references: [id])
-
-  @@map("arr_log_manuals")
-}
-
-model AwlrLogManual {
-  id      BigInt          @id @default(autoincrement())
-  user_id BigInt?
-  awlr_id BigInt?
-  time    String?
-  date    DateTime?
-  value   Float?
-  unit    String?
-  awlr    PostHydrologic? @relation(fields: [awlr_id], references: [id])
-  user    User?           @relation(fields: [user_id], references: [id])
-
-  @@map("awlr_log_manuals")
-}
-
-model AwsLogManual {
-  id      BigInt          @id @default(autoincrement())
-  user_id BigInt?
-  aws_id  BigInt?
-  time    String?
-  date    DateTime?
-  value   Float?
-  unit    String?
-  aws     PostHydrologic? @relation(fields: [aws_id], references: [id])
-  user    User?           @relation(fields: [user_id], references: [id])
-
-  @@map("aws_log_manuals")
-}
-
-model PostGuard {
-  id                  BigInt          @id @default(autoincrement())
-  user_id             BigInt?
-  name                String?
-  postName            String?         @map("post_name")
-  typePos             String?         @map("type_pos")
-  photo               String?
-  time                String?
-  date                DateTime?
-  value               Float?
-  unit                String?
-  manual_positions_id BigInt?
-  manualPosition      PostHydrologic? @relation(fields: [manual_positions_id], references: [id])
-  user                User?           @relation(fields: [user_id], references: [id])
-
-  @@map("post_guards")
-}
-
-model PostHydrologic {
-  id             BigInt          @id @default(autoincrement())
-  name           String?
-  type_pos       String?
-  arrLogManuals  ArrLogManual[]
-  awlrLogManuals AwlrLogManual[]
-  awsLogManuals  AwsLogManual[]
-  postGuards     PostGuard[]
-
-  @@map("post_hydrologic")
 }
 
 model Report {
@@ -443,11 +370,11 @@ model HydrologicOutputHechms {
 }
 
 model Vehicle {
-  id                   BigInt               @id @default(autoincrement())
+  id                   BigInt    @id @default(autoincrement())
   name                 String?
   driver_name          String?
   driver_phone         String?
-  registration         String?              @unique
+  registration         String?   @unique
   chassis_number       String?
   time                 DateTime?
   latitude             Float?
@@ -455,39 +382,15 @@ model Vehicle {
   position_description String?
   speed                Float?
   bearing              Int?
-  vehicle_status       Boolean?             @default(true)
-  idling               Boolean?             @default(true)
+  vehicle_status       Boolean?  @default(true)
+  idling               Boolean?  @default(true)
   odometer             BigInt?
   altitude             Float?
   fuel_level           Float?
   fuel_percentage      Float?
   created_at           DateTime?
-  vehicleTrackingLogs  VehicleTrackingLog[]
 
   @@map("vehicle")
-}
-
-model VehicleTrackingLog {
-  id                   BigInt    @id @default(autoincrement())
-  vehicle_id           BigInt?
-  registration         String?
-  chassis_number       String?
-  time                 DateTime?
-  latitude             Float?
-  longitude            Float?
-  position_description String?
-  speed                Float?
-  bearing              Int?
-  vehicle_status       Boolean?
-  idling               Boolean?
-  odometer             BigInt?
-  altitude             Float?
-  fuel_level           Float?
-  fuel_percentage      Float?
-  created_at           DateTime?
-  vehicle              Vehicle?  @relation(fields: [vehicle_id], references: [id], onDelete: Cascade)
-
-  @@map("vehicle_tracking_logs")
 }
 
 model Sirine {
@@ -510,14 +413,24 @@ model Sirine {
   on_control_state      String?
   off_control_value     Int?
   off_control_state     String?
-  on_control_state_id   String?
-  on_control_url        String?
   off_control_state_id  String?
   off_control_url       String?
-
-  // Tambahkan ini
-  is_sirine_on Boolean?  @default(false)
-  updated_at   DateTime? @updatedAt
+  on_control_state_id   String?
+  on_control_url        String?
+  is_sirine_on          Boolean?  @default(false)
+  updated_at            DateTime? @updatedAt
 
   @@map("sirine")
+}
+
+model RiverSectionPoint {
+  id             BigInt      @id @default(autoincrement())
+  x              Float
+  y              Float
+  elevation      Float
+  distance       Float
+  awlrStationId  BigInt?
+  awlrStation    AwlrStation? @relation(fields: [awlrStationId], references: [id])
+
+  @@map("river_section_points")
 }

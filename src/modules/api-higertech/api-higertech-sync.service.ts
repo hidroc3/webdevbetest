@@ -28,58 +28,71 @@ export class HigertechSyncService {
   async handleCron() {
     this.logger.log('Running Higertech sync...');
     try {
-      await this.sync();
+      await this.syncAwlr();
+      await this.syncArr();
       this.logger.log('Higertech sync complete');
     } catch (err) {
       this.logger.error('Higertech sync failed', err);
     }
   }
 
-  async sync() {
+  // Sync khusus AWLR
+  private async syncAwlr() {
     const stations = await this.awlrService.findAll();
     for (const station of stations) {
-      const deviceId = station.device_id;
-      if (!deviceId) continue;
-      const data = await this.fetchDeviceData(deviceId);
+      if (!station.device_id) continue;
+      const data = await this.fetchDeviceData(station.device_id);
       if (!data || !data.device_id || !data.reading_at) {
-        this.logger.warn(`No data for device ${deviceId}`);
+        this.logger.warn(`No data for AWLR device ${station.device_id}`);
         continue;
       }
 
-      // Jika ada water_level, update AWLR
       if (data.water_level != null) {
         const payload = {
           time: dayjs(data.reading_at).add(7, 'hour').toDate(),
           water_level: Number(data.water_level),
           battery: data.battery ? Number(data.battery) : undefined,
-          post_name: station.post_name ?? deviceId,
+          post_name: station.post_name ?? data.device_id,
         };
         try {
-          await this.awlrService.updateByDeviceId(deviceId, payload);
-          this.logger.log(`AWLR updated: ${deviceId}`);
+          await this.awlrService.updateByDeviceId(data.device_id, payload);
+          this.logger.log(`AWLR updated: ${data.device_id}`);
         } catch (err) {
-          this.logger.warn(`Failed to update AWLR ${deviceId}`, err);
-        }
-      }
-
-      // Jika ada rainfall, update ARR
-      if (data.rainfall != null) {
-        const payload = {
-          time: dayjs(data.reading_at).add(7, 'hour').toDate(),
-          rainfall: Number(data.rainfall),
-          battery: data.battery ? Number(data.battery) : undefined,
-          post_name: station.post_name ?? deviceId,
-        };
-        try {
-          await this.arrService.updateByDeviceId(deviceId, payload);
-          this.logger.log(`ARR updated: ${deviceId}`);
-        } catch (err) {
-          this.logger.warn(`Failed to update ARR ${deviceId}`, err);
+          this.logger.warn(`Failed to update AWLR ${data.device_id}`, err);
         }
       }
     }
   }
 
+  // Sync khusus ARR
+  private async syncArr() {
+    const stations = await this.arrService.findAll();
+    for (const station of stations) {
+      if (!station.device_id) continue;
+      const data = await this.fetchDeviceData(station.device_id);
+      if (!data || !data.device_id || !data.reading_at) {
+        this.logger.warn(`No data for ARR device ${station.device_id}`);
+        continue;
+      }
+
+      if (data.rainfall != null) {
+        const payload = {
+          time: dayjs(data.reading_at).add(7, 'hour').toDate(),
+          rainfall: Number(data.rainfall),
+          battery: data.battery ? Number(data.battery) : undefined,
+          post_name: station.post_name ?? data.device_id,
+        };
+        try {
+          await this.arrService.updateByDeviceId(data.device_id, payload);
+          this.logger.log(`ARR updated: ${data.device_id}`);
+        } catch (err) {
+          this.logger.warn(`Failed to update ARR ${data.device_id}`, err);
+        }
+      }
+    }
+  }
+
+  // Ambil data dari API Higertech
   private async fetchDeviceData(
     deviceId: string,
   ): Promise<HigertechReading | null> {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateAwlrLogDto } from './dto/create-awlr-log.dto';
 import { UpdateAwlrLogDto } from './dto/update-awlr-log.dto';
@@ -11,80 +11,65 @@ export class AwlrLogsService {
     return this.prisma.awlrLog.create({ data });
   }
 
-  findAll() {
-    return this.prisma.awlrLog.findMany({
-      orderBy: { time: 'desc' },
-    });
-  }
+  // Get logs with search, by post_name, date range
+  async findFiltered(
+    page = 1,
+    limit = 10,
+    search?: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    const skip = (page - 1) * limit;
+    const where: any = {};
 
-  findAllByStationId(awlr_station_id: number) {
-    return this.prisma.awlrLog.findMany({
-      where: { awlr_station_id },
-      orderBy: { time: 'desc' },
-    });
-  }
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
 
-  findAllToday() {
-    const [start, end] = this.getTodayRange();
-    return this.prisma.awlrLog.findMany({
-      where: { time: { gte: start, lte: end } },
-      orderBy: { time: 'desc' },
-    });
-  }
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        throw new BadRequestException('Invalid date format');
+      }
 
-  findTodayByStationId(awlr_station_id: number) {
-    const [start, end] = this.getTodayRange();
-    return this.prisma.awlrLog.findMany({
-      where: {
-        awlr_station_id,
-        time: { gte: start, lte: end },
-      },
-      orderBy: { time: 'desc' },
-    });
-  }
+      const diff = end.getTime() - start.getTime();
+      if (diff > 31 * 24 * 60 * 60 * 1000) {
+        throw new BadRequestException('Date range cannot exceed 1 month');
+      }
 
-  updateByStationId(awlr_station_id: number, data: UpdateAwlrLogDto) {
-    return this.prisma.awlrLog.updateMany({
-      where: { awlr_station_id },
+      where.time = { gte: start, lte: end };
+    }
+
+    if (search) {
+      where.post_name = { contains: search };
+    }
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.awlrLog.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { time: 'desc' },
+      }),
+      this.prisma.awlrLog.count({ where }),
+    ]);
+
+    return {
       data,
-    });
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
-  removeByStationId(awlr_station_id: number) {
-    return this.prisma.awlrLog.deleteMany({
-      where: { awlr_station_id },
-    });
+  updateById(id: number, data: UpdateAwlrLogDto) {
+    return this.prisma.awlrLog.update({ where: { id }, data });
   }
 
-  private getTodayRange(): [Date, Date] {
-    const now = new Date();
-    const wibOffset = 7 * 60 * 60 * 1000;
-    const wibNow = new Date(now.getTime() + wibOffset);
+  deleteById(id: number) {
+    return this.prisma.awlrLog.delete({ where: { id } });
+  }
 
-    const start = new Date(
-      Date.UTC(
-        wibNow.getUTCFullYear(),
-        wibNow.getUTCMonth(),
-        wibNow.getUTCDate(),
-        0,
-        0,
-        0,
-        0,
-      ),
-    );
-
-    const end = new Date(
-      Date.UTC(
-        wibNow.getUTCFullYear(),
-        wibNow.getUTCMonth(),
-        wibNow.getUTCDate(),
-        23,
-        59,
-        59,
-        999,
-      ),
-    );
-
-    return [start, end];
+  deleteAll() {
+    return this.prisma.awlrLog.deleteMany({});
   }
 }

@@ -1,8 +1,10 @@
 import { IsOptional, IsString, IsNumber, IsDateString } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateReportDetailDto {
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   category_id?: number;
 
   @IsOptional()
@@ -15,7 +17,7 @@ export class CreateReportDetailDto {
 
   @IsOptional()
   @IsDateString()
-  date?: string;
+  date?: Date;
 
   @IsOptional()
   @IsString()

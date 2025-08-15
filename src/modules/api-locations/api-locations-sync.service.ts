@@ -1,14 +1,25 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import axios from 'axios';
 import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
-export class LocationsSyncService {
-  private readonly logger = new Logger(LocationsSyncService.name);
+export class ApiLocationsSyncService implements OnModuleInit {
+  private readonly logger = new Logger(ApiLocationsSyncService.name);
   private readonly BASE_URL =
     'https://emsifa.github.io/api-wilayah-indonesia/api';
 
   constructor(private readonly prisma: PrismaService) {}
+
+  async onModuleInit() {
+    const alreadySynced = await this.isLocationsSynced();
+    if (!alreadySynced) {
+      this.logger.log('🚀 Sinkronisasi data wilayah dimulai...');
+      await this.syncLocations();
+      this.logger.log('✅ Sinkronisasi selesai.');
+    } else {
+      this.logger.log('✅ Data wilayah sudah ada di database.');
+    }
+  }
 
   async isLocationsSynced(): Promise<boolean> {
     const count = await this.prisma.province.count();
@@ -26,7 +37,7 @@ export class LocationsSyncService {
     );
 
     for (const province of filteredProvinces) {
-      const savedProvince = await this.prisma.province.upsert({
+      await this.prisma.province.upsert({
         where: { id: BigInt(province.id) },
         update: { name: province.name },
         create: { id: BigInt(province.id), name: province.name },
@@ -36,7 +47,7 @@ export class LocationsSyncService {
         `${this.BASE_URL}/regencies/${province.id}.json`,
       );
       for (const city of regencies) {
-        const savedCity = await this.prisma.city.upsert({
+        await this.prisma.city.upsert({
           where: { id: BigInt(city.id) },
           update: { name: city.name, provinceId: BigInt(province.id) },
           create: {
@@ -50,7 +61,7 @@ export class LocationsSyncService {
           `${this.BASE_URL}/districts/${city.id}.json`,
         );
         for (const district of districts) {
-          const savedDistrict = await this.prisma.subDistrict.upsert({
+          await this.prisma.subDistrict.upsert({
             where: { id: BigInt(district.id) },
             update: { name: district.name, cityId: BigInt(city.id) },
             create: {

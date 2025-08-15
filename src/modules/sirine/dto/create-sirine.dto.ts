@@ -3,7 +3,7 @@ import {
   IsNumber,
   IsBoolean,
   IsOptional,
-  IsDate,
+  IsDateString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -39,8 +39,7 @@ export class CreateSirineDto {
   status_logger?: string;
 
   @IsOptional()
-  @Type(() => Date)
-  @IsDate()
+  @IsDateString()
   last_comm_success?: Date;
 
   @IsOptional()
@@ -52,8 +51,7 @@ export class CreateSirineDto {
   outdated_alarm_status?: string;
 
   @IsOptional()
-  @Type(() => Date)
-  @IsDate()
+  @IsDateString()
   outdated_data_time?: Date;
 
   @IsOptional()
@@ -89,20 +87,19 @@ export class CreateSirineDto {
 
   @IsOptional()
   @IsString()
-  on_control_url?: string;
-
-  @IsOptional()
-  @IsString()
   on_control_state_id?: string;
 
   @IsOptional()
   @IsString()
-  off_control_url?: string;
+  on_control_url?: string;
 
   @IsOptional()
   @IsString()
   off_control_state_id?: string;
 
+  @IsOptional()
+  @IsString()
+  off_control_url?: string;
 
   @IsOptional()
   @IsBoolean()

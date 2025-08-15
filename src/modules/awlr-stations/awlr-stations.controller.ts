@@ -10,7 +10,6 @@ import {
 import { AwlrStationsService } from './awlr-stations.service';
 import { CreateAwlrStationDto } from './dto/create-awlr-station.dto';
 import { UpdateAwlrStationDto } from './dto/update-awlr-station.dto';
-// import { UpdateAwlrStationBulkDto } from './dto/update-awlr-station-bulk.dto';
 
 @Controller('awlr-stations')
 export class AwlrStationsController {

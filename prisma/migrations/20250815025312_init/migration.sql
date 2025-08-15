@@ -123,11 +123,12 @@ CREATE TABLE [dbo].[aws_stations] (
     [built_year] NVARCHAR(1000),
     [renovated_by] NVARCHAR(1000),
     [renovated_year] NVARCHAR(1000),
-    [alert_level_1] INT,
-    [alert_level_2] INT,
-    [alert_level_3] INT,
-    [alert_level_4] INT,
+    [alert_level_1] FLOAT(53),
+    [alert_level_2] FLOAT(53),
+    [alert_level_3] FLOAT(53),
+    [alert_level_4] FLOAT(53),
     [status] NVARCHAR(1000),
+    [is_active] BIT CONSTRAINT [aws_stations_is_active_df] DEFAULT 1,
     CONSTRAINT [aws_stations_pkey] PRIMARY KEY CLUSTERED ([id]),
     CONSTRAINT [aws_stations_device_id_key] UNIQUE NONCLUSTERED ([device_id])
 );
@@ -173,11 +174,11 @@ CREATE TABLE [dbo].[awlr_stations] (
     [built_year] NVARCHAR(1000),
     [renovated_by] NVARCHAR(1000),
     [renovated_year] NVARCHAR(1000),
-    [alert_level_1] INT,
-    [alert_level_2] INT,
-    [alert_level_3] INT,
-    [alert_level_4] INT,
+    [alert_level_1] FLOAT(53),
+    [alert_level_2] FLOAT(53),
+    [alert_level_3] FLOAT(53),
     [status] NVARCHAR(1000),
+    [is_active] BIT CONSTRAINT [awlr_stations_is_active_df] DEFAULT 1,
     CONSTRAINT [awlr_stations_pkey] PRIMARY KEY CLUSTERED ([id]),
     CONSTRAINT [awlr_stations_device_id_key] UNIQUE NONCLUSTERED ([device_id])
 );
@@ -188,11 +189,11 @@ CREATE TABLE [dbo].[awlr_logs] (
     [awlr_station_id] BIGINT,
     [time] DATETIME2,
     [water_level] FLOAT(53),
-    [debit] FLOAT(53),
     [battery] FLOAT(53),
     [panel_temperature] FLOAT(53),
     [status] NVARCHAR(1000),
     [post_name] NVARCHAR(1000),
+    [debit] FLOAT(53),
     CONSTRAINT [awlr_logs_pkey] PRIMARY KEY CLUSTERED ([id])
 );
 
@@ -215,11 +216,12 @@ CREATE TABLE [dbo].[arr_stations] (
     [built_year] NVARCHAR(1000),
     [renovated_by] NVARCHAR(1000),
     [renovated_year] NVARCHAR(1000),
-    [alert_level_1] INT,
-    [alert_level_2] INT,
-    [alert_level_3] INT,
-    [alert_level_4] INT,
+    [alert_level_1] FLOAT(53),
+    [alert_level_2] FLOAT(53),
+    [alert_level_3] FLOAT(53),
+    [alert_level_4] FLOAT(53),
     [status] NVARCHAR(1000),
+    [is_active] BIT CONSTRAINT [arr_stations_is_active_df] DEFAULT 1,
     CONSTRAINT [arr_stations_pkey] PRIMARY KEY CLUSTERED ([id]),
     CONSTRAINT [arr_stations_device_id_key] UNIQUE NONCLUSTERED ([device_id])
 );
@@ -255,66 +257,6 @@ CREATE TABLE [dbo].[message_wa] (
     [messageText] TEXT,
     [created_at] DATETIME2,
     CONSTRAINT [message_wa_pkey] PRIMARY KEY CLUSTERED ([id])
-);
-
--- CreateTable
-CREATE TABLE [dbo].[arr_log_manuals] (
-    [id] BIGINT NOT NULL IDENTITY(1,1),
-    [user_id] BIGINT,
-    [arr_id] BIGINT,
-    [time] NVARCHAR(1000),
-    [date] DATETIME2,
-    [value] FLOAT(53),
-    [unit] NVARCHAR(1000),
-    CONSTRAINT [arr_log_manuals_pkey] PRIMARY KEY CLUSTERED ([id])
-);
-
--- CreateTable
-CREATE TABLE [dbo].[awlr_log_manuals] (
-    [id] BIGINT NOT NULL IDENTITY(1,1),
-    [user_id] BIGINT,
-    [awlr_id] BIGINT,
-    [time] NVARCHAR(1000),
-    [date] DATETIME2,
-    [value] FLOAT(53),
-    [unit] NVARCHAR(1000),
-    CONSTRAINT [awlr_log_manuals_pkey] PRIMARY KEY CLUSTERED ([id])
-);
-
--- CreateTable
-CREATE TABLE [dbo].[aws_log_manuals] (
-    [id] BIGINT NOT NULL IDENTITY(1,1),
-    [user_id] BIGINT,
-    [aws_id] BIGINT,
-    [time] NVARCHAR(1000),
-    [date] DATETIME2,
-    [value] FLOAT(53),
-    [unit] NVARCHAR(1000),
-    CONSTRAINT [aws_log_manuals_pkey] PRIMARY KEY CLUSTERED ([id])
-);
-
--- CreateTable
-CREATE TABLE [dbo].[post_guards] (
-    [id] BIGINT NOT NULL IDENTITY(1,1),
-    [user_id] BIGINT,
-    [name] NVARCHAR(1000),
-    [post_name] NVARCHAR(1000),
-    [type_pos] NVARCHAR(1000),
-    [photo] NVARCHAR(1000),
-    [time] NVARCHAR(1000),
-    [date] DATETIME2,
-    [value] FLOAT(53),
-    [unit] NVARCHAR(1000),
-    [manual_positions_id] BIGINT,
-    CONSTRAINT [post_guards_pkey] PRIMARY KEY CLUSTERED ([id])
-);
-
--- CreateTable
-CREATE TABLE [dbo].[post_hydrologic] (
-    [id] BIGINT NOT NULL IDENTITY(1,1),
-    [name] NVARCHAR(1000),
-    [type_pos] NVARCHAR(1000),
-    CONSTRAINT [post_hydrologic_pkey] PRIMARY KEY CLUSTERED ([id])
 );
 
 -- CreateTable
@@ -405,28 +347,6 @@ CREATE TABLE [dbo].[vehicle] (
 );
 
 -- CreateTable
-CREATE TABLE [dbo].[vehicle_tracking_logs] (
-    [id] BIGINT NOT NULL IDENTITY(1,1),
-    [vehicle_id] BIGINT,
-    [registration] NVARCHAR(1000),
-    [chassis_number] NVARCHAR(1000),
-    [time] DATETIME2,
-    [latitude] FLOAT(53),
-    [longitude] FLOAT(53),
-    [position_description] NVARCHAR(1000),
-    [speed] FLOAT(53),
-    [bearing] INT,
-    [vehicle_status] BIT,
-    [idling] BIT,
-    [odometer] BIGINT,
-    [altitude] FLOAT(53),
-    [fuel_level] FLOAT(53),
-    [fuel_percentage] FLOAT(53),
-    [created_at] DATETIME2,
-    CONSTRAINT [vehicle_tracking_logs_pkey] PRIMARY KEY CLUSTERED ([id])
-);
-
--- CreateTable
 CREATE TABLE [dbo].[sirine] (
     [id] BIGINT NOT NULL IDENTITY(1,1),
     [name] NVARCHAR(1000),
@@ -447,13 +367,24 @@ CREATE TABLE [dbo].[sirine] (
     [on_control_state] NVARCHAR(1000),
     [off_control_value] INT,
     [off_control_state] NVARCHAR(1000),
-    [on_control_state_id] NVARCHAR(1000),
-    [on_control_url] NVARCHAR(1000),
     [off_control_state_id] NVARCHAR(1000),
     [off_control_url] NVARCHAR(1000),
+    [on_control_state_id] NVARCHAR(1000),
+    [on_control_url] NVARCHAR(1000),
     [is_sirine_on] BIT CONSTRAINT [sirine_is_sirine_on_df] DEFAULT 0,
     [updated_at] DATETIME2,
     CONSTRAINT [sirine_pkey] PRIMARY KEY CLUSTERED ([id])
+);
+
+-- CreateTable
+CREATE TABLE [dbo].[river_section_points] (
+    [id] BIGINT NOT NULL IDENTITY(1,1),
+    [x] FLOAT(53) NOT NULL,
+    [y] FLOAT(53) NOT NULL,
+    [elevation] FLOAT(53) NOT NULL,
+    [distance] FLOAT(53) NOT NULL,
+    [awlrStationId] BIGINT,
+    CONSTRAINT [river_section_points_pkey] PRIMARY KEY CLUSTERED ([id])
 );
 
 -- AddForeignKey
@@ -499,30 +430,6 @@ ALTER TABLE [dbo].[arr_logs] ADD CONSTRAINT [arr_logs_arr_station_id_fkey] FOREI
 ALTER TABLE [dbo].[message_wa] ADD CONSTRAINT [message_wa_contact_id_fkey] FOREIGN KEY ([contact_id]) REFERENCES [dbo].[contact_wa]([id]) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE [dbo].[arr_log_manuals] ADD CONSTRAINT [arr_log_manuals_arr_id_fkey] FOREIGN KEY ([arr_id]) REFERENCES [dbo].[post_hydrologic]([id]) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE [dbo].[arr_log_manuals] ADD CONSTRAINT [arr_log_manuals_user_id_fkey] FOREIGN KEY ([user_id]) REFERENCES [dbo].[user]([id]) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE [dbo].[awlr_log_manuals] ADD CONSTRAINT [awlr_log_manuals_awlr_id_fkey] FOREIGN KEY ([awlr_id]) REFERENCES [dbo].[post_hydrologic]([id]) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE [dbo].[awlr_log_manuals] ADD CONSTRAINT [awlr_log_manuals_user_id_fkey] FOREIGN KEY ([user_id]) REFERENCES [dbo].[user]([id]) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE [dbo].[aws_log_manuals] ADD CONSTRAINT [aws_log_manuals_aws_id_fkey] FOREIGN KEY ([aws_id]) REFERENCES [dbo].[post_hydrologic]([id]) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE [dbo].[aws_log_manuals] ADD CONSTRAINT [aws_log_manuals_user_id_fkey] FOREIGN KEY ([user_id]) REFERENCES [dbo].[user]([id]) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE [dbo].[post_guards] ADD CONSTRAINT [post_guards_manual_positions_id_fkey] FOREIGN KEY ([manual_positions_id]) REFERENCES [dbo].[post_hydrologic]([id]) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE [dbo].[post_guards] ADD CONSTRAINT [post_guards_user_id_fkey] FOREIGN KEY ([user_id]) REFERENCES [dbo].[user]([id]) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE [dbo].[report_details] ADD CONSTRAINT [report_details_category_id_fkey] FOREIGN KEY ([category_id]) REFERENCES [dbo].[report]([id]) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -544,7 +451,7 @@ ALTER TABLE [dbo].[hydrologic_output_hechms] ADD CONSTRAINT [hydrologic_output_h
 ALTER TABLE [dbo].[hydrologic_output_hechms] ADD CONSTRAINT [hydrologic_output_hechms_das_id_fkey] FOREIGN KEY ([das_id]) REFERENCES [dbo].[das]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE [dbo].[vehicle_tracking_logs] ADD CONSTRAINT [vehicle_tracking_logs_vehicle_id_fkey] FOREIGN KEY ([vehicle_id]) REFERENCES [dbo].[vehicle]([id]) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE [dbo].[river_section_points] ADD CONSTRAINT [river_section_points_awlrStationId_fkey] FOREIGN KEY ([awlrStationId]) REFERENCES [dbo].[awlr_stations]([id]) ON DELETE SET NULL ON UPDATE CASCADE;
 
 COMMIT TRAN;
 

@@ -7,8 +7,24 @@ import { UpdateArrStationDto } from './dto/update-arr-station.dto';
 export class ArrStationsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private calculateStatus(rainfall?: number): string {
+    if (rainfall === undefined || rainfall === null) return 'Tidak Diketahui';
+    if (rainfall === 0) return 'Berawan';
+    if (rainfall > 0 && rainfall <= 5) return 'Hujan Ringan';
+    if (rainfall > 5 && rainfall <= 10) return 'Hujan Sedang';
+    if (rainfall > 10 && rainfall <= 20) return 'Hujan Lebat';
+    if (rainfall > 20) return 'Hujan Sangat Lebat';
+    return 'Tidak Diketahui';
+  }
+
   create(data: CreateArrStationDto) {
-    return this.prisma.arrStation.create({ data });
+    const status = this.calculateStatus(data.rainfall);
+    return this.prisma.arrStation.create({
+      data: {
+        ...data,
+        status,
+      },
+    });
   }
 
   findAll() {
@@ -20,7 +36,14 @@ export class ArrStationsService {
   }
 
   update(id: number, data: UpdateArrStationDto) {
-    return this.prisma.arrStation.update({ where: { id }, data });
+    const status = this.calculateStatus(data.rainfall);
+    return this.prisma.arrStation.update({
+      where: { id },
+      data: {
+        ...data,
+        status,
+      },
+    });
   }
 
   remove(id: number) {
@@ -31,12 +54,17 @@ export class ArrStationsService {
     device_id: string,
     data: Partial<UpdateArrStationDto>,
   ) {
+    const status = this.calculateStatus(data.rainfall);
     return this.prisma.arrStation.upsert({
       where: { device_id },
-      update: data,
+      update: {
+        ...data,
+        status,
+      },
       create: {
         device_id,
         ...data,
+        status,
       },
     });
   }
