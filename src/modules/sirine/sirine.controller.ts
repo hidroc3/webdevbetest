@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   BadRequestException,
   HttpCode,
+  UseGuards,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
@@ -17,8 +18,12 @@ import { ConfigService } from '@nestjs/config';
 import { SirineService } from './sirine.service';
 import { CreateSirineDto } from './dto/create-sirine.dto';
 import { UpdateSirineDto } from './dto/update-sirine.dto';
+import { JwtGuard } from '@/common/guards/jwt.guard';
+import { AccessGuard } from '@/common/guards/access.guard';
+import { Permission } from '@/common/decorators/access.decorator';
 
 @Controller('sirine')
+@UseGuards(JwtGuard, AccessGuard)
 export class SirineController {
   constructor(
     private readonly service: SirineService,
@@ -27,37 +32,44 @@ export class SirineController {
   ) {}
 
   @Post()
+  @Permission('create sirine')
   create(@Body() dto: CreateSirineDto) {
     return this.service.create(dto);
   }
 
   @Post('bulk')
+  @Permission('create sirine')
   createMany(@Body() dtos: CreateSirineDto[]) {
     return this.service.createMany(dtos);
   }
 
   @Get()
+  @Permission('data sirine')
   findAll() {
     return this.service.findAll();
   }
 
   @Get(':id')
+  @Permission('detail sirine')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.service.findOne(BigInt(id));
   }
 
   @Patch(':id')
+  @Permission('update sirine')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSirineDto) {
     return this.service.update(BigInt(id), dto);
   }
 
   @Delete(':id')
+  @Permission('delete sirine')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.service.remove(BigInt(id));
   }
 
   @Post(':id/on')
   @HttpCode(200)
+  @Permission('update sirine')
   async turnOnSirine(@Param('id', ParseIntPipe) id: number) {
     const sirine = await this.service.findOne(BigInt(id));
 
@@ -88,6 +100,7 @@ export class SirineController {
 
   @Post(':id/off')
   @HttpCode(200)
+  @Permission('update sirine')
   async turnOffSirine(@Param('id', ParseIntPipe) id: number) {
     const sirine = await this.service.findOne(BigInt(id));
 
