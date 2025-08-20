@@ -6,16 +6,22 @@ import {
   Param,
   Patch,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { ContactWaService } from './contact-wa.service';
 import { CreateContactWaDto } from './dto/create-contact-wa.dto';
 import { UpdateContactWaDto } from './dto/update-contact-wa.dto';
+import { JwtGuard } from '@/common/guards/jwt.guard';
+import { AccessGuard } from '@/common/guards/access.guard';
+import { Permission } from '@/common/decorators/access.decorator';
 
 @Controller('contact-wa')
+@UseGuards(JwtGuard, AccessGuard)
 export class ContactWaController {
   constructor(private readonly service: ContactWaService) {}
 
   @Post('bulk')
+  @Permission('create contact wa')
   async createBulk(@Body() dtos: CreateContactWaDto[]) {
     const data = await this.service.createMany(dtos);
     return {
@@ -25,6 +31,7 @@ export class ContactWaController {
   }
 
   @Get()
+  @Permission('data contact wa')
   async findAll() {
     const data = await this.service.findAll();
     return {
@@ -34,6 +41,7 @@ export class ContactWaController {
   }
 
   @Get(':id')
+  @Permission('detail contact wa')
   async findOne(@Param('id') id: string) {
     const data = await this.service.findOne(+id);
     return {
@@ -43,6 +51,7 @@ export class ContactWaController {
   }
 
   @Patch(':id')
+  @Permission('update contact wa')
   async update(@Param('id') id: string, @Body() dto: UpdateContactWaDto) {
     const data = await this.service.update(+id, dto);
     return {
@@ -52,6 +61,7 @@ export class ContactWaController {
   }
 
   @Delete(':id')
+  @Permission('delete contact wa')
   async remove(@Param('id') id: string) {
     const data = await this.service.remove(+id);
     return {
