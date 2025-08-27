@@ -6,22 +6,16 @@ import {
   Param,
   Patch,
   Delete,
-  UseGuards,
 } from '@nestjs/common';
 import { AwsStationsService } from './aws-stations.service';
 import { CreateAwsStationDto } from './dto/create-aws-station.dto';
 import { UpdateAwsStationDto } from './dto/update-aws-station.dto';
-import { JwtGuard } from '@/common/guards/jwt.guard';
-import { AccessGuard } from '@/common/guards/access.guard';
-import { Permission } from '@/common/decorators/access.decorator';
 
 @Controller('aws-stations')
-@UseGuards(JwtGuard, AccessGuard)
 export class AwsStationsController {
   constructor(private readonly service: AwsStationsService) {}
 
   @Post()
-  @Permission('create aws station')
   async create(@Body() dto: CreateAwsStationDto) {
     const created = await this.service.create(dto);
     const { id, ...rest } = created;
@@ -32,7 +26,6 @@ export class AwsStationsController {
   }
 
   @Get()
-  @Permission('data aws station')
   async findAll() {
     const stations = await this.service.findAll();
     const filtered = stations.map(({ id, ...rest }) => rest);
@@ -43,7 +36,6 @@ export class AwsStationsController {
   }
 
   @Get(':id')
-  @Permission('detail aws station')
   async findOne(@Param('id') id: string) {
     const station = await this.service.findOne(+id);
     if (!station) {
@@ -60,7 +52,6 @@ export class AwsStationsController {
   }
 
   @Patch(':id')
-  @Permission('update aws station')
   async update(@Param('id') id: string, @Body() dto: UpdateAwsStationDto) {
     const updated = await this.service.update(+id, dto);
     const { id: _, ...rest } = updated;
@@ -71,7 +62,6 @@ export class AwsStationsController {
   }
 
   @Delete(':id')
-  @Permission('delete aws station')
   async remove(@Param('id') id: string) {
     const deleted = await this.service.remove(+id);
     const { id: _, ...rest } = deleted;
