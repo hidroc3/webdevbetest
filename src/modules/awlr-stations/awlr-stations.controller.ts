@@ -6,22 +6,16 @@ import {
   Param,
   Patch,
   Delete,
-  UseGuards,
 } from '@nestjs/common';
 import { AwlrStationsService } from './awlr-stations.service';
 import { CreateAwlrStationDto } from './dto/create-awlr-station.dto';
 import { UpdateAwlrStationDto } from './dto/update-awlr-station.dto';
-import { JwtGuard } from '@/common/guards/jwt.guard';
-import { AccessGuard } from '@/common/guards/access.guard';
-import { Permission } from '@/common/decorators/access.decorator';
 
 @Controller('awlr-stations')
-@UseGuards(JwtGuard, AccessGuard)
 export class AwlrStationsController {
   constructor(private readonly service: AwlrStationsService) {}
 
   @Post()
-  @Permission('create awlr station')
   async create(@Body() dto: CreateAwlrStationDto) {
     const created = await this.service.create(dto);
     const { id, ...rest } = created;
@@ -32,7 +26,6 @@ export class AwlrStationsController {
   }
 
   @Get()
-  @Permission('data awlr station')
   async findAll() {
     const stations = await this.service.findAll();
     const filtered = stations.map(({ id, ...rest }) => rest);
@@ -43,7 +36,6 @@ export class AwlrStationsController {
   }
 
   @Get(':id')
-  @Permission('detail awlr station')
   async findOne(@Param('id') id: string) {
     const station = await this.service.findOne(+id);
     if (!station) {
@@ -60,7 +52,6 @@ export class AwlrStationsController {
   }
 
   @Patch(':id')
-  @Permission('update awlr station')
   async update(@Param('id') id: string, @Body() dto: UpdateAwlrStationDto) {
     const updated = await this.service.update(+id, dto);
     const { id: _, ...rest } = updated;
@@ -71,7 +62,6 @@ export class AwlrStationsController {
   }
 
   @Delete(':id')
-  @Permission('delete awlr station')
   async remove(@Param('id') id: string) {
     const deleted = await this.service.remove(+id);
     const { id: _, ...rest } = deleted;
