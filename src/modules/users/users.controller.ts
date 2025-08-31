@@ -16,7 +16,10 @@ import { Query, ValidationPipe, UsePipes } from '@nestjs/common';
 import { QueryParamsDto } from './dto/query-params.dto';
 import { AccessGuard } from '@/common/guards/access.guard';
 import { Permission } from '@/common/decorators/access.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('users') 
+@ApiBearerAuth('access-token') 
 @Controller('users')
 @UseGuards(JwtGuard, AccessGuard)
 export class UsersController {

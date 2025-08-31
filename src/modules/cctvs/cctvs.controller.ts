@@ -14,7 +14,10 @@ import { UpdateCctvDto } from './dto/update-cctv.dto';
 import { JwtGuard } from '@/common/guards/jwt.guard';
 import { AccessGuard } from '@/common/guards/access.guard';
 import { Permission } from '@/common/decorators/access.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('cctvs')
+@ApiBearerAuth('access-token')
 @Controller('cctvs')
 @UseGuards(JwtGuard, AccessGuard)
 export class CctvsController {

@@ -13,7 +13,9 @@ import { LoginDto } from './dto/login.dto';
 import { Request } from 'express';
 import { JwtGuard } from '@/common/guards/jwt.guard';
 import { JwtInterface } from '@/common/interface/jwt.interface';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -29,6 +31,7 @@ export class AuthController {
   }
 
   @Get('user')
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtGuard)
   async user(@Req() req: Request) {
     const id = (req.user as JwtInterface).id;

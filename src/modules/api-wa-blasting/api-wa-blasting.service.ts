@@ -38,7 +38,7 @@ export class ApiWaBlastingService {
       ],
     };
 
-    return this.sendRequest(data, 'send_text_message');
+    return this.sendRequest(data, 'send_message');
   }
 
   async sendImage(sendImageDto: SendImageDto) {

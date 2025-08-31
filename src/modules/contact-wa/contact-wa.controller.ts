@@ -14,7 +14,10 @@ import { UpdateContactWaDto } from './dto/update-contact-wa.dto';
 import { JwtGuard } from '@/common/guards/jwt.guard';
 import { AccessGuard } from '@/common/guards/access.guard';
 import { Permission } from '@/common/decorators/access.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('contact-wa') 
+@ApiBearerAuth('access-token') 
 @Controller('contact-wa')
 @UseGuards(JwtGuard, AccessGuard)
 export class ContactWaController {

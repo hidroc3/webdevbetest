@@ -19,7 +19,10 @@ import { AssignPermissionDto } from './dto/assign-permission.dto';
 import { QueryParamsDto } from './dto/query-params.dto';
 import { AccessGuard } from '@/common/guards/access.guard';
 import { Permission } from '@/common/decorators/access.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('roles')
+@ApiBearerAuth('access-token')
 @Controller('roles')
 @UseGuards(JwtGuard, AccessGuard)
 export class RolesController {

@@ -15,7 +15,10 @@ import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { JwtGuard } from '@/common/guards/jwt.guard';
 import { AccessGuard } from '@/common/guards/access.guard';
 import { Permission } from '@/common/decorators/access.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('vehicles')
+@ApiBearerAuth('access-token')
 @Controller('vehicles')
 @UseGuards(JwtGuard, AccessGuard)
 export class VehiclesController {

@@ -14,7 +14,10 @@ import { UpdateReportDto } from './dto/update-report.dto';
 import { JwtGuard } from '@/common/guards/jwt.guard';
 import { AccessGuard } from '@/common/guards/access.guard';
 import { Permission } from '@/common/decorators/access.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('reports') 
+@ApiBearerAuth('access-token') 
 @Controller('reports')
 @UseGuards(JwtGuard, AccessGuard)
 export class ReportsController {

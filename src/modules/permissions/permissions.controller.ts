@@ -18,7 +18,11 @@ import { JwtGuard } from '@/common/guards/jwt.guard';
 import { QueryParamsDto } from './dto/query-params.dto';
 import { AccessGuard } from '@/common/guards/access.guard';
 import { Permission } from '@/common/decorators/access.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+
+@ApiTags('permission') 
+@ApiBearerAuth('access-token') 
 @Controller('permissions')
 @UseGuards(JwtGuard, AccessGuard)
 export class PermissionsController {

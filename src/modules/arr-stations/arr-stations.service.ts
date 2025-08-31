@@ -1,3 +1,4 @@
+// arr-stations.service.ts
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateArrStationDto } from './dto/create-arr-station.dto';
@@ -7,6 +8,7 @@ import { UpdateArrStationDto } from './dto/update-arr-station.dto';
 export class ArrStationsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // ================== Status Logic ==================
   private calculateStatus(rainfall?: number): string {
     if (rainfall === undefined || rainfall === null) return 'Tidak Diketahui';
     if (rainfall === 0) return 'Berawan';
@@ -27,8 +29,24 @@ export class ArrStationsService {
     });
   }
 
+  // ================== Find All (AptechSyncService - Higertech) ==================
   findAll() {
-    return this.prisma.arrStation.findMany();
+    return this.prisma.arrStation.findMany({
+      orderBy: { id: 'asc' },
+    });
+  }
+
+  // ================== Pagination  ==================
+  async findMany(skip: number, take: number) {
+    return this.prisma.arrStation.findMany({
+      skip,
+      take,
+      orderBy: { id: 'asc' },
+    });
+  }
+
+  async count(): Promise<number> {
+    return this.prisma.arrStation.count();
   }
 
   findOne(id: number) {
@@ -45,7 +63,6 @@ export class ArrStationsService {
       },
     });
   }
-
   remove(id: number) {
     return this.prisma.arrStation.delete({ where: { id } });
   }
