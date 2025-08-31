@@ -1,101 +1,57 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
-import { SendFileDto } from './dto/send-file.dto';
-import { SendImageDto } from './dto/send-image.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 
 @Injectable()
 export class ApiWaBlastingService {
-  private readonly WAZAP_API_URL: string;
-  private readonly WAZAP_INSTANCE_ID: string;
-  private readonly WAZAP_API_TOKEN: string;
+  private readonly WATZAP_API_URL: string;
+  private readonly WATZAP_NUMBER_KEY: string;
+  private readonly WATZAP_API_KEY: string;
 
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
-    this.WAZAP_API_URL = this.configService.get<string>('WAZAP_API_URL')!;
-    this.WAZAP_INSTANCE_ID =
-      this.configService.get<string>('WAZAP_INSTANCE_ID')!;
-    this.WAZAP_API_TOKEN = this.configService.get<string>('WAZAP_API_TOKEN')!;
+    this.WATZAP_API_URL = this.configService.get<string>('WATZAP_API_URL')!;
+    this.WATZAP_NUMBER_KEY =
+      this.configService.get<string>('WATZAP_NUMBER_KEY')!;
+    this.WATZAP_API_KEY = this.configService.get<string>('WATZAP_API_KEY')!;
   }
 
-  async sendMessage(sendMessageDto: SendMessageDto) {
-    const { phoneNumber, message } = sendMessageDto;
-    const data = {
-      instance_id: this.WAZAP_INSTANCE_ID,
-      apimeta: {
-        api_token: this.WAZAP_API_TOKEN,
-      },
-      wa_messages: [
-        {
-          to: phoneNumber,
-          body: message,
-        },
-      ],
+  async sendMessage(dto: SendMessageDto) {
+    const request = {
+      phone_no: dto.phoneNumber,
+      message: dto.message,
     };
-
-    return this.sendRequest(data, 'send_text_message');
+    return this.sendRequest('send_message', request);
   }
 
-  async sendImage(sendImageDto: SendImageDto) {
-    const { phoneNumber, imageUrl, caption } = sendImageDto;
-    const data = {
-      instance_id: this.WAZAP_INSTANCE_ID,
-      apimeta: {
-        api_token: this.WAZAP_API_TOKEN,
-      },
-      wa_messages: [
-        {
-          to: phoneNumber,
-          media_url: imageUrl,
-          body: caption,
-        },
-      ],
+  private async sendRequest(endpoint: string, request: object) {
+    const url = `${this.WATZAP_API_URL}/${endpoint}`;
+    const headers = {
+      'Content-Type': 'application/json',
     };
-    return this.sendRequest(data, 'send_image');
-  }
-
-  async sendFile(sendFileDto: SendFileDto) {
-    const { phoneNumber, fileUrl, caption, filename } = sendFileDto;
-    const data = {
-      instance_id: this.WAZAP_INSTANCE_ID,
-      apimeta: {
-        api_token: this.WAZAP_API_TOKEN,
-      },
-      wa_messages: [
-        {
-          to: phoneNumber,
-          media_url: fileUrl,
-          file_name: filename,
-          body: caption,
-        },
-      ],
+    const body = {
+      api_key: this.WATZAP_API_KEY,
+      number_key: this.WATZAP_NUMBER_KEY,
+      ...request,
     };
-    return this.sendRequest(data, 'send_file');
-  }
-
-  private async sendRequest(data: any, endpoint: string) {
-    const url = `${this.WAZAP_API_URL}/${endpoint}`;
-    try {
-      const { data: response } = await firstValueFrom(
-        this.httpService.post(url, data).pipe(
-          catchError((error: AxiosError) => {
-            console.error(
-              'Error during API request:',
-              error.response?.data || error.message,
-            );
-            throw `API Request Failed: ${error.message}`;
-          }),
-        ),
-      );
-      return response;
-    } catch (error) {
-      console.error('Failed to send request:', error);
-      throw error;
-    }
+    await firstValueFrom(
+      this.httpService.post(url, body, { headers }).pipe(
+        catchError((error: AxiosError) => {
+          throw new HttpException(
+            {
+              message: 'Failed to call Watzap API',
+              errors: error.response?.data || error.message,
+            },
+            error.response?.status || 500,
+          );
+        }),
+      ),
+    );
+    return;
   }
 }

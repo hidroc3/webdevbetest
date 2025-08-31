@@ -16,6 +16,8 @@ async function bootstrap() {
     }),
   );
 
+  app.setGlobalPrefix('api');
+
   // Konfigurasi Swagger
   const config = new DocumentBuilder()
     .setTitle('FFews API')
@@ -24,7 +26,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document); // ➜ http://localhost:3000/api
+  SwaggerModule.setup('api/docs', app, document); // ➜ http://localhost:3000/api/docs
 
   await app.listen(3000, '0.0.0.0');
 }
