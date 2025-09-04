@@ -5,6 +5,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { BigIntInterceptor } from './common/interceptors/bigint.interceptor';
 
 async function bootstrap() {
+  process.env.TZ = 'Asia/Jakarta';
+
   const app = await NestFactory.create(AppModule);
   app.useGlobalInterceptors(new BigIntInterceptor());
 
