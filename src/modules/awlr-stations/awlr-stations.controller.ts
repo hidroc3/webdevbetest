@@ -6,10 +6,12 @@ import {
   Param,
   Patch,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { AwlrStationsService } from './awlr-stations.service';
 import { CreateAwlrStationDto } from './dto/create-awlr-station.dto';
 import { UpdateAwlrStationDto } from './dto/update-awlr-station.dto';
+import { ApiQuery } from '@nestjs/swagger';
 
 @Controller('awlr-stations')
 export class AwlrStationsController {
@@ -26,12 +28,21 @@ export class AwlrStationsController {
   }
 
   @Get()
-  async findAll() {
-    const stations = await this.service.findAll();
+  @ApiQuery({ name: 'page', required: false, example: 1 })
+  @ApiQuery({ name: 'perPage', required: false, example: 10 })
+  async findAll(@Query('page') page = 1, @Query('perPage') perPage = 10) {
+    const skip = (Number(page) - 1) * Number(perPage);
+    const total = await this.service.count();
+    const stations = await this.service.findMany(skip, Number(perPage));
     const filtered = stations.map(({ id, ...rest }) => rest);
+
     return {
       message: 'All station data fetched successfully',
       data: filtered,
+      total,
+      page: Number(page),
+      perPage: Number(perPage),
+      totalPages: Math.ceil(total / Number(perPage)),
     };
   }
 

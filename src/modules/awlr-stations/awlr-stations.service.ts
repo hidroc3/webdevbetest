@@ -75,6 +75,20 @@ export class AwlrStationsService {
     });
   }
 
+  // ================== Pagination  ==================
+  async count(): Promise<number> {
+    return this.prisma.awlrStation.count();
+  }
+
+  async findMany(skip: number, take: number) {
+    return this.prisma.awlrStation.findMany({
+      skip,
+      take,
+      orderBy: { id: 'asc' },
+    });
+  }
+  // ================== Pagination  ==================
+
   findAll() {
     return this.prisma.awlrStation.findMany();
   }

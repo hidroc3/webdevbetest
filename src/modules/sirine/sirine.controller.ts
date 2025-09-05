@@ -21,7 +21,10 @@ import { UpdateSirineDto } from './dto/update-sirine.dto';
 import { JwtGuard } from '@/common/guards/jwt.guard';
 import { AccessGuard } from '@/common/guards/access.guard';
 import { Permission } from '@/common/decorators/access.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('sirine') 
+@ApiBearerAuth('access-token') 
 @Controller('sirine')
 @UseGuards(JwtGuard, AccessGuard)
 export class SirineController {

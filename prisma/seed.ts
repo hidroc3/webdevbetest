@@ -1,9 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-
 const prisma = new PrismaClient();
 
-async function main() {
+export async function seedDatabase() {
   // 1. Permissions
   const permissions = [
     'data permission',
@@ -106,7 +105,6 @@ async function main() {
     console.log(`${newRoles.length} roles created`);
   }
 
-  // Ambil role Super Admin & Admin
   const superAdminRole = await prisma.role.findUnique({
     where: { name: 'Super Admin' },
   });
@@ -127,10 +125,7 @@ async function main() {
 
     const newRolePerms = allPermissions
       .filter((perm) => !existingPermIds.includes(perm.id))
-      .map((perm) => ({
-        roleId: superAdminRole.id,
-        permissionId: perm.id,
-      }));
+      .map((perm) => ({ roleId: superAdminRole.id, permissionId: perm.id }));
 
     if (newRolePerms.length) {
       await prisma.roleHasPermission.createMany({ data: newRolePerms });
@@ -138,7 +133,7 @@ async function main() {
     }
   }
 
-  // 4. Buat Super Admin user
+  // 4. Super Admin user
   const superAdminUser = await prisma.user.findUnique({
     where: { email: 'super.admin@email.com' },
   });
@@ -152,17 +147,13 @@ async function main() {
         username: 'super_admin',
         password: hashedPassword,
         isActive: true,
-        roles: {
-          create: {
-            role: { connect: { id: superAdminRole.id } },
-          },
-        },
+        roles: { create: { role: { connect: { id: superAdminRole.id } } } },
       },
     });
     console.log('Super Admin user created');
   }
 
-  // 5. Buat Admin user
+  // 5. Admin user
   const adminUser = await prisma.user.findUnique({
     where: { email: 'admin@email.com' },
   });
@@ -176,23 +167,9 @@ async function main() {
         username: 'admin',
         password: hashedPassword,
         isActive: true,
-        roles: {
-          create: {
-            role: { connect: { id: adminRole.id } },
-          },
-        },
+        roles: { create: { role: { connect: { id: adminRole.id } } } },
       },
     });
     console.log('Admin user created');
   }
 }
-
-main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });

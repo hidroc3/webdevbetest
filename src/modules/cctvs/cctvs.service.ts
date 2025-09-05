@@ -11,8 +11,21 @@ export class CctvsService {
     return this.prisma.cctv.create({ data });
   }
 
+  // ================== Pagination Support ==================
+  async findMany(skip: number, take: number) {
+    return this.prisma.cctv.findMany({
+      skip,
+      take,
+      orderBy: { id: 'asc' },
+    });
+  }
+
+  async count(): Promise<number> {
+    return this.prisma.cctv.count();
+  }
+
   findAll() {
-    return this.prisma.cctv.findMany();
+    return this.prisma.cctv.findMany({ orderBy: { id: 'asc' } });
   }
 
   findOne(id: number) {

@@ -7,7 +7,6 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -17,16 +16,16 @@ export class UsersService {
     const uniqueUsername = await this.prisma.user.findUnique({
       where: { username: data.username },
     });
-    if (uniqueUsername) {
+    if (uniqueUsername)
       throw new BadRequestException('Username already exists');
-    }
+
     const uniqueEmail = await this.prisma.user.findUnique({
       where: { email: data.email },
     });
-    if (uniqueEmail) {
-      throw new BadRequestException('Email already exists');
-    }
+    if (uniqueEmail) throw new BadRequestException('Email already exists');
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
+
     const user = await this.prisma.user.create({
       data: {
         name: data.name,
@@ -35,11 +34,7 @@ export class UsersService {
         password: hashedPassword,
         isActive: data.isActive ?? true,
         roles: data.roleId
-          ? {
-              create: {
-                role: { connect: { id: BigInt(data.roleId) } },
-              },
-            }
+          ? { create: { role: { connect: { id: BigInt(data.roleId) } } } }
           : undefined,
       },
       select: {
@@ -50,17 +45,10 @@ export class UsersService {
         isActive: true,
         createdAt: true,
         updatedAt: true,
-        roles: {
-          select: {
-            role: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
+        roles: { select: { role: { select: { name: true } } } },
       },
     });
+
     return {
       ...user,
       role: user.roles[0]?.role.name ?? null,
@@ -79,6 +67,7 @@ export class UsersService {
           ],
         }
       : {};
+
     const [total, data] = await Promise.all([
       this.prisma.user.count({ where }),
       this.prisma.user.findMany({
@@ -93,19 +82,13 @@ export class UsersService {
           isActive: true,
           createdAt: true,
           updatedAt: true,
-          roles: {
-            select: {
-              role: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
+          roles: { select: { role: { select: { name: true } } } },
         },
       }),
     ]);
+
     const totalPages = Math.ceil(total / perPage);
+
     return {
       data: data.map((user) => ({
         ...user,
@@ -130,18 +113,11 @@ export class UsersService {
         isActive: true,
         createdAt: true,
         updatedAt: true,
-        roles: {
-          select: {
-            role: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
+        roles: { select: { role: { select: { name: true } } } },
       },
     });
     if (!user) throw new NotFoundException('User not found');
+
     return {
       ...user,
       role: user.roles[0]?.role.name ?? null,
@@ -156,28 +132,31 @@ export class UsersService {
     if (uniqueUsername && BigInt(uniqueUsername.id) !== id) {
       throw new BadRequestException('Username already exists');
     }
+
     const uniqueEmail = await this.prisma.user.findUnique({
       where: { email: data.email },
     });
     if (uniqueEmail && BigInt(uniqueEmail.id) !== id) {
       throw new BadRequestException('Email already exists');
     }
+
     let hashedPassword: string | undefined;
-    if (data.password) {
-      hashedPassword = await bcrypt.hash(data.password, 10);
-    }
-    const updateData: Prisma.UserUpdateInput = {};
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.email !== undefined) updateData.email = data.email;
-    if (data.username !== undefined) updateData.username = data.username;
-    if (hashedPassword !== undefined) updateData.password = hashedPassword;
-    if (data.isActive !== undefined) updateData.isActive = data.isActive;
-    if (data.roleId !== undefined) {
-      updateData.roles = {
-        deleteMany: {},
-        create: { role: { connect: { id: BigInt(data.roleId) } } },
-      };
-    }
+    if (data.password) hashedPassword = await bcrypt.hash(data.password, 10);
+
+    const updateData = {
+      ...(data.name !== undefined && { name: data.name }),
+      ...(data.email !== undefined && { email: data.email }),
+      ...(data.username !== undefined && { username: data.username }),
+      ...(hashedPassword && { password: hashedPassword }),
+      ...(data.isActive !== undefined && { isActive: data.isActive }),
+      ...(data.roleId !== undefined && {
+        roles: {
+          deleteMany: {},
+          create: { role: { connect: { id: BigInt(data.roleId) } } },
+        },
+      }),
+    };
+
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: updateData,
@@ -189,17 +168,10 @@ export class UsersService {
         isActive: true,
         createdAt: true,
         updatedAt: true,
-        roles: {
-          select: {
-            role: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
+        roles: { select: { role: { select: { name: true } } } },
       },
     });
+
     return {
       ...updatedUser,
       role: updatedUser.roles[0]?.role.name ?? null,
@@ -210,8 +182,7 @@ export class UsersService {
   async remove(id: bigint) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
-    return this.prisma.user.delete({
-      where: { id },
-    });
+
+    return this.prisma.user.delete({ where: { id } });
   }
 }
