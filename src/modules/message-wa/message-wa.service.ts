@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateMessageWaDto } from './dto/create-message-wa.dto';
 import { UpdateMessageWaDto } from './dto/update-message-wa.dto';
@@ -10,10 +10,35 @@ type StationWithLogs = Prisma.AwlrStationGetPayload<{
   include: { logs: true };
 }>;
 
+function getDateTimeSlot() {
+  const now = new Date();
+  const jakartaTime = new Date(
+    now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }),
+  );
+
+  const currentHour = jakartaTime.getHours();
+  const endHour = currentHour;
+  let startHour = currentHour - 3;
+
+  if (startHour < 0) {
+    startHour = 21;
+  }
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  const time = `${pad(endHour)}:00`;
+  const date = new Intl.DateTimeFormat('id-ID', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'Asia/Jakarta',
+  }).format(now);
+
+  return { date, time };
+}
+
 @Injectable()
 export class MessageWaService {
-  private readonly logger = new Logger(MessageWaService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly apiWaBlastingService: ApiWaBlastingService,
@@ -84,34 +109,10 @@ export class MessageWaService {
 
   @Cron('0 0 */3 * * *', {
     timeZone: 'Asia/Jakarta',
-    // Setiap 3 jam di mulai dari 00:00 WIB
+    // Setiap 3 jam
   })
   async scheduleWa() {
-    const timeSlots = [
-      { start: '00:00:00', end: '03:00:00', slot: 1 },
-      { start: '03:00:00', end: '06:00:00', slot: 2 },
-      { start: '06:00:00', end: '09:00:00', slot: 3 },
-      { start: '09:00:00', end: '12:00:00', slot: 4 },
-      { start: '12:00:00', end: '15:00:00', slot: 5 },
-      { start: '15:00:00', end: '18:00:00', slot: 6 },
-      { start: '18:00:00', end: '21:00:00', slot: 7 },
-      { start: '21:00:00', end: '23:59:59', slot: 8 },
-    ];
-
-    const now = new Date();
-    const date = new Intl.DateTimeFormat('id-ID', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      timeZone: 'Asia/Jakarta',
-    }).format(now);
-    const jakartaTime = new Date(
-      now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }),
-    );
-
-    const currentHour = jakartaTime.getHours();
-    const currentSlotIndex = Math.floor(currentHour / 3);
-    const slot = timeSlots[currentSlotIndex];
+    const { date, time } = getDateTimeSlot();
 
     // AWLR
     const awlrStations = await this.prisma.awlrStation.findMany({
@@ -298,7 +299,7 @@ export class MessageWaService {
 
     const message =
       '📢 Laporan Hidrologi BBWS C3\n\n' +
-      `🗓️ ${date} ⏰ ${slot.start} WIB\n` +
+      `🗓️ ${date} ⏰ ${time} WIB\n` +
       '\n==========================================\n\n' +
       '🌊 Status AWLR (Tinggi Muka Air)\n\n' +
       sectionAwlrNormal +
