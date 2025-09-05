@@ -6,6 +6,8 @@ import { BigIntInterceptor } from './common/interceptors/bigint.interceptor';
 import { seedDatabase } from '../prisma/seed';
 
 async function bootstrap() {
+  process.env.TZ = 'Asia/Jakarta';
+
   const app = await NestFactory.create(AppModule);
 
   // Disable 'X-Powered-By' header for security
