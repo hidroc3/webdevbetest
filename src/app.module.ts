@@ -45,6 +45,7 @@ import { ApiSirineEagleioModule } from './modules/api-sirine-eagleio/api-sirine-
 import { AuthModule } from './modules/auth/auth.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
+import { MinioModule } from './minio/minio.module';
 
 @Module({
   imports: [
@@ -80,6 +81,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
     AuthModule,
     RolesModule,
     PermissionsModule,
+    MinioModule,
   ],
   controllers: [AppController],
   providers: [AppService],
