@@ -434,3 +434,14 @@ model RiverSectionPoint {
 
   @@map("river_section_points")
 }
+
+model AppSetting {
+  id        BigInt   @id @default(autoincrement()) @map("id")
+  key       String   @unique @map("key")
+  type      String   @map("type")
+  value     String?  @db.Text @map("value")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt     @map("updated_at")
+
+  @@map("app_setting")
+}

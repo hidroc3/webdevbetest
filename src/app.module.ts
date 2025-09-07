@@ -47,6 +47,7 @@ import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { MinioModule } from './minio/minio.module';
 import { UploadModule } from './upload/upload.module';
+import { AppSettingModule } from './modules/app-setting/app-setting.module';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { UploadModule } from './upload/upload.module';
     PermissionsModule,
     MinioModule,
     UploadModule,
+    AppSettingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
