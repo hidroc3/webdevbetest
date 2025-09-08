@@ -51,6 +51,8 @@ import { AppSettingModule } from './modules/app-setting/app-setting.module';
 import { FaqModule } from './modules/faq/faq.module';
 import { ContactUsModule } from './modules/contact-us/contact-us.module';
 import { HeroModule } from './modules/hero/hero.module';
+import { Sih3Module } from './modules/sih3/sih3.module';
+import { Sih3ItemModule } from './modules/sih3-item/sih3-item.module';
 
 @Module({
   imports: [
@@ -92,6 +94,8 @@ import { HeroModule } from './modules/hero/hero.module';
     FaqModule,
     ContactUsModule,
     HeroModule,
+    Sih3Module,
+    Sih3ItemModule,
   ],
   controllers: [AppController],
   providers: [AppService],

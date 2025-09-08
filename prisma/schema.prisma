@@ -467,13 +467,34 @@ model ContactUs {
 }
 
 model Hero {
+  id        BigInt   @id @default(autoincrement()) @map("id")
+  richText  String?  @map("rich_text") @db.Text
+  ctaText   String?  @map("cta_text") @db.Text
+  ctaLink   String?  @map("cta_link") @db.Text
+  imagePath String?  @map("image_path") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("hero")
+}
+
+model Sih3 {
   id          BigInt   @id @default(autoincrement()) @map("id")
-  richText    String?  @map("rich_text") @db.Text
-  ctaText     String?  @map("cta_text") @db.Text
-  ctaLink     String?  @map("cta_link") @db.Text
-  imagePath   String?  @map("image_path") @db.Text
+  title       String?  @map("title") @db.Text
+  description String?  @map("description") @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  @@map("hero")
+  @@map("sih3")
+}
+
+model Sih3Item {
+  id          BigInt   @id @default(autoincrement()) @map("id")
+  logoPath    String?  @map("logo_path") @db.Text
+  title       String?  @map("title") @db.Text
+  description String?  @map("description") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("sih3_item")
 }
