@@ -50,6 +50,7 @@ import { UploadModule } from './upload/upload.module';
 import { AppSettingModule } from './modules/app-setting/app-setting.module';
 import { FaqModule } from './modules/faq/faq.module';
 import { ContactUsModule } from './modules/contact-us/contact-us.module';
+import { HeroModule } from './modules/hero/hero.module';
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ import { ContactUsModule } from './modules/contact-us/contact-us.module';
     AppSettingModule,
     FaqModule,
     ContactUsModule,
+    HeroModule,
   ],
   controllers: [AppController],
   providers: [AppService],

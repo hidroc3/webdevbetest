@@ -24,7 +24,7 @@ export class ContactUsService {
 
   async findOne(id: number): Promise<ContactUsEntity> {
     const data = await this.prisma.contactUs.findUnique({ where: { id } });
-    if (!data) throw new NotFoundException('Faq not found');
+    if (!data) throw new NotFoundException('Not found');
     return data;
   }
 

@@ -465,3 +465,15 @@ model ContactUs {
 
   @@map("contact_us")
 }
+
+model Hero {
+  id          BigInt   @id @default(autoincrement()) @map("id")
+  richText    String?  @map("rich_text") @db.Text
+  ctaText     String?  @map("cta_text") @db.Text
+  ctaLink     String?  @map("cta_link") @db.Text
+  imagePath   String?  @map("image_path") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("hero")
+}
