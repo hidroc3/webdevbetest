@@ -45,19 +45,23 @@ import { ApiSirineEagleioModule } from './modules/api-sirine-eagleio/api-sirine-
 import { AuthModule } from './modules/auth/auth.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
-import { MinioModule } from './minio/minio.module';
-import { UploadModule } from './upload/upload.module';
 import { AppSettingModule } from './modules/app-setting/app-setting.module';
 import { FaqModule } from './modules/faq/faq.module';
 import { ContactUsModule } from './modules/contact-us/contact-us.module';
 import { HeroModule } from './modules/hero/hero.module';
 import { Sih3Module } from './modules/sih3/sih3.module';
 import { Sih3ItemModule } from './modules/sih3-item/sih3-item.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(), // scheduller
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'storage', 'uploads'),
+      serveRoot: '/files', // URL prefix akses -> http://localhost:3000/files/namafile.png
+    }),
     PrismaModule,
     CctvsModule,
     ProvincesModule,
@@ -88,8 +92,6 @@ import { Sih3ItemModule } from './modules/sih3-item/sih3-item.module';
     AuthModule,
     RolesModule,
     PermissionsModule,
-    MinioModule,
-    UploadModule,
     AppSettingModule,
     FaqModule,
     ContactUsModule,
