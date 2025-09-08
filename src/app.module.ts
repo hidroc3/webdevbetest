@@ -49,6 +49,7 @@ import { MinioModule } from './minio/minio.module';
 import { UploadModule } from './upload/upload.module';
 import { AppSettingModule } from './modules/app-setting/app-setting.module';
 import { FaqModule } from './modules/faq/faq.module';
+import { ContactUsModule } from './modules/contact-us/contact-us.module';
 
 @Module({
   imports: [
@@ -88,6 +89,7 @@ import { FaqModule } from './modules/faq/faq.module';
     UploadModule,
     AppSettingModule,
     FaqModule,
+    ContactUsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
