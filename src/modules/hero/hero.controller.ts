@@ -6,18 +6,24 @@ import {
   Patch,
   Param,
   Delete,
+  UploadedFile,
 } from '@nestjs/common';
 import { HeroService } from './hero.service';
 import { CreateHeroDto } from './dto/create-hero.dto';
 import { UpdateHeroDto } from './dto/update-hero.dto';
+import { UploadFile } from '@/common/decorators/upload.decorator';
 
 @Controller('hero')
 export class HeroController {
   constructor(private readonly heroService: HeroService) {}
 
   @Post()
-  async create(@Body() createHeroDto: CreateHeroDto) {
-    const data = await this.heroService.create(createHeroDto);
+  @UploadFile('file', ['image/jpeg', 'image/png'], 2)
+  async create(
+    @Body() createHeroDto: CreateHeroDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const data = await this.heroService.create(createHeroDto, file);
     return {
       message: 'Hero created successfully',
       data,
@@ -43,8 +49,13 @@ export class HeroController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateHeroDto: UpdateHeroDto) {
-    const data = await this.heroService.update(+id, updateHeroDto);
+  @UploadFile('file', ['image/jpeg', 'image/png'], 2)
+  async update(
+    @Param('id') id: string,
+    @Body() updateHeroDto: UpdateHeroDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    const data = await this.heroService.update(+id, updateHeroDto, file);
     return {
       message: 'Hero updated successfully',
       data,
