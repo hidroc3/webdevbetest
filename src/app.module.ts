@@ -48,6 +48,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
 import { MinioModule } from './minio/minio.module';
 import { UploadModule } from './upload/upload.module';
 import { AppSettingModule } from './modules/app-setting/app-setting.module';
+import { FaqModule } from './modules/faq/faq.module';
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { AppSettingModule } from './modules/app-setting/app-setting.module';
     MinioModule,
     UploadModule,
     AppSettingModule,
+    FaqModule,
   ],
   controllers: [AppController],
   providers: [AppService],

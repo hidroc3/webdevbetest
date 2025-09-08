@@ -17,7 +17,7 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  roles          UserHasRole[]
+  roles UserHasRole[]
 
   @@map("user")
 }
@@ -424,13 +424,13 @@ model Sirine {
 }
 
 model RiverSectionPoint {
-  id             BigInt      @id @default(autoincrement())
-  x              Float
-  y              Float
-  elevation      Float
-  distance       Float
-  awlrStationId  BigInt?
-  awlrStation    AwlrStation? @relation(fields: [awlrStationId], references: [id])
+  id            BigInt       @id @default(autoincrement())
+  x             Float
+  y             Float
+  elevation     Float
+  distance      Float
+  awlrStationId BigInt?
+  awlrStation   AwlrStation? @relation(fields: [awlrStationId], references: [id])
 
   @@map("river_section_points")
 }
@@ -439,9 +439,29 @@ model AppSetting {
   id        BigInt   @id @default(autoincrement()) @map("id")
   key       String   @unique @map("key")
   type      String   @map("type")
-  value     String?  @db.Text @map("value")
+  value     String?  @map("value") @db.Text
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt     @map("updated_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("app_setting")
+}
+
+model Faq {
+  id        BigInt   @id @default(autoincrement()) @map("id")
+  question  String?  @map("question") @db.Text
+  answer    String?  @map("answer") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("faq")
+}
+
+model ContactUs {
+  id          BigInt   @id @default(autoincrement()) @map("id")
+  type        String?  @map("type") @db.Text
+  description String?  @map("description") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("contact_us")
 }
