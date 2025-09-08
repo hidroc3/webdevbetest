@@ -4,11 +4,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { BigIntInterceptor } from './common/interceptors/bigint.interceptor';
 import { seedDatabase } from '../prisma/seed';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
   process.env.TZ = 'Asia/Jakarta';
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Disable 'X-Powered-By' header for security
   const expressApp = app.getHttpAdapter().getInstance();
@@ -19,6 +21,10 @@ async function bootstrap() {
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Authorization,Content-Type',
+  });
+
+  app.useStaticAssets(join(__dirname, '..', 'storage', 'uploads'), {
+    prefix: '/uploads/',
   });
 
   // Prefix global
