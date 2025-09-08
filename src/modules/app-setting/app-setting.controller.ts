@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { AppSettingService } from './app-setting.service';
-import { UpsertSettingDto } from './dto/upsert-setting';
+import { UpsertSettingDto } from './dto/upsert-setting.dto';
 
 @Controller('app-setting')
 export class AppSettingController {

@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { AppSetting } from '@prisma/client';
-import { UpsertSettingDto } from './dto/upsert-setting';
+import { UpsertSettingDto } from './dto/upsert-setting.dto';
+import { AppSettingEntity } from './entity/app-setting.entitiy';
 
 @Injectable()
 export class AppSettingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async upsert(dto: UpsertSettingDto): Promise<AppSetting> {
+  async upsert(dto: UpsertSettingDto): Promise<AppSettingEntity> {
     const data = await this.prisma.appSetting.upsert({
       where: { key: dto.key },
       update: { type: dto.type, value: dto.value },
@@ -16,15 +16,14 @@ export class AppSettingService {
     return data;
   }
 
-  async getAll(): Promise<AppSetting[]> {
-    const data = (await this.prisma.appSetting.findMany({
+  async getAll(): Promise<AppSettingEntity[]> {
+    const data = await this.prisma.appSetting.findMany({
       orderBy: { key: 'asc' },
-    })) as AppSetting[];
-
+    });
     return data;
   }
 
-  async getByKey(key: string): Promise<AppSetting> {
+  async getByKey(key: string): Promise<AppSettingEntity> {
     const data = await this.prisma.appSetting.findUnique({
       where: { key: key },
     });
@@ -32,7 +31,7 @@ export class AppSettingService {
     return data;
   }
 
-  async remove(key: string): Promise<AppSetting> {
+  async remove(key: string): Promise<AppSettingEntity> {
     const data = await this.prisma.appSetting.delete({
       where: { key: key },
     });
